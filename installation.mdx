@@ -1,0 +1,156 @@
+---
+title: Installation
+description: Step-by-step guide to installing and activating the Tohka Theme on your WordPress site
+---
+
+## Requirements
+
+Before installing Tohka Theme, ensure your server meets these requirements:
+
+<CardGroup cols={2}>
+  <Card title="WordPress Version" icon="wordpress">
+    WordPress 6.0 or higher
+  </Card>
+  <Card title="PHP Version" icon="code">
+    PHP 7.4 or higher
+  </Card>
+</CardGroup>
+
+<Note>
+  Tohka Theme has been tested up to WordPress 6.5 and is fully compatible with the block editor (Gutenberg) and page builders like Elementor.
+</Note>
+
+## Installation Methods
+
+You can install Tohka Theme using either the WordPress admin interface or manually via FTP.
+
+### Method 1: WordPress Admin Installation
+
+<Steps>
+  <Step title="Access the Theme Upload Page">
+    Log in to your WordPress admin dashboard and navigate to **Appearance > Themes > Add New > Upload Theme**.
+  </Step>
+
+  <Step title="Upload the Theme File">
+    Click the **Choose File** button and select the `tohka-theme.zip` file from your computer, then click **Install Now**.
+  </Step>
+
+  <Step title="Activate the Theme">
+    Once the upload is complete, click the **Activate** button to make Tohka your active theme.
+  </Step>
+</Steps>
+
+### Method 2: FTP Installation
+
+<Steps>
+  <Step title="Extract the Theme Files">
+    Unzip the `tohka-theme.zip` file on your local computer. You should see a folder named `tohka` or similar.
+  </Step>
+
+  <Step title="Upload via FTP">
+    Connect to your server using an FTP client and navigate to `/wp-content/themes/`. Upload the extracted theme folder to this directory.
+  </Step>
+
+  <Step title="Activate from WordPress">
+    Go to **Appearance > Themes** in your WordPress dashboard. You should see Tohka Theme listed. Click **Activate**.
+  </Step>
+</Steps>
+
+## Initial Configuration
+
+After activating the theme, complete these initial setup steps to get your site ready.
+
+<Steps>
+  <Step title="Set Up the Primary Navigation Menu">
+    Navigate to **Appearance > Menus** in your WordPress dashboard.
+
+    1. Create a new menu or select an existing one
+    2. Add pages, posts, or custom links to your menu
+    3. Under **Display location**, check **Menú Principal** (Primary Menu)
+    4. Click **Save Menu**
+
+    The primary menu will appear in your site's navigation bar and is configured in the theme with this code:
+
+    ```php
+    register_nav_menus(
+        array(
+        'primary' => __('Menú Principal', 'tokha'),
+    ));
+    ```
+  </Step>
+
+  <Step title="Configure Sidebar Widgets">
+    Go to **Appearance > Widgets** to add widgets to your sidebar.
+
+    1. Locate the **Sidebar Principal** widget area
+    2. Drag and drop widgets from the available widgets list
+    3. Configure each widget's settings as needed
+    4. The sidebar will automatically appear on your site
+
+    <Tip>
+      Common widgets to add include Search, Recent Posts, Categories, and Tag Cloud.
+    </Tip>
+  </Step>
+
+  <Step title="Set a Custom Logo (Optional)">
+    To add your site logo:
+
+    1. Navigate to **Appearance > Customize > Site Identity**
+    2. Click **Select Logo** and upload your logo image
+    3. Adjust the logo size if needed
+    4. Click **Publish** to save your changes
+  </Step>
+
+  <Step title="Configure Permalinks">
+    For optimal SEO and clean URLs:
+
+    1. Go to **Settings > Permalinks**
+    2. Select **Post name** or your preferred structure
+    3. Click **Save Changes**
+  </Step>
+</Steps>
+
+<Warning>
+  After changing permalink settings, you may need to flush your site's cache if you're using a caching plugin.
+</Warning>
+
+## Theme Features Enabled
+
+Tohka Theme automatically enables these WordPress features upon activation:
+
+- **Dynamic Title Tag** - WordPress manages the `<title>` element automatically
+- **Featured Images** - Support for post thumbnails on posts and pages
+- **HTML5 Markup** - Modern semantic HTML for search forms, comments, galleries, and captions
+- **Wide Alignment** - Full and wide block alignment support for Gutenberg and page builders
+- **Primary Navigation Menu** - Fully customizable header menu location
+- **Widget-Ready Sidebar** - Customizable sidebar area for content widgets
+
+These features are configured in `/inc/setup.php`:
+
+```php
+function tokha_setup() {
+    add_theme_support('title-tag');
+    add_theme_support('post-thumbnails');
+    add_theme_support('html5', array(
+        'search-form',
+        'comment-form',
+        'comment-list',
+        'gallery',
+        'caption'
+    ));
+    add_theme_support('align-wide');
+}
+```
+
+## Next Steps
+
+Now that Tohka Theme is installed and configured, you're ready to start building your site:
+
+<CardGroup cols={2}>
+  <Card title="Quick Start Guide" icon="rocket" href="/quickstart">
+    Get your first page up and running
+  </Card>
+  <Card title="Theme Customization" icon="palette" href="/features/theme-setup">
+    Learn about customization options
+  </Card>
+</CardGroup>

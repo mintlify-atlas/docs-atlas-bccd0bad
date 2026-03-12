@@ -1,0 +1,603 @@
+---
+title: 'Navigation Menus'
+description: 'Learn how to configure and customize navigation menus in Tohka'
+icon: 'bars'
+---
+
+## Overview
+
+Tohka provides a flexible navigation menu system with a primary menu location. The menu system integrates seamlessly with WordPress's native menu functionality and is easily customizable through both the admin interface and template files.
+
+<Note>
+  The primary menu is registered in `inc/setup.php` and implemented in `template-parts/navbar.php`.
+</Note>
+
+## Menu Registration
+
+The primary menu location is registered in the theme setup:
+
+```php inc/setup.php
+register_nav_menus(
+    array(
+    'primary' => __('Menú Principal', 'tokha'),
+));
+```
+
+**Menu Location Details:**
+- **ID**: `primary`
+- **Name**: "Menú Principal" (translatable)
+- **Purpose**: Main site navigation
+- **Location**: Typically in the site header
+
+## Navigation Template
+
+The navigation is rendered using the template in `template-parts/navbar.php`:
+
+```php template-parts/navbar.php
+<nav class="navbar">
+    <div class="container">
+
+        <div class="logo">
+            <?php the_custom_logo(); ?>
+        </div>
+
+        <?php
+        wp_nav_menu(array(
+            'theme_location' => 'primary',
+            'menu_class'     => 'menu'
+        ));
+        ?>
+
+    </div>
+</nav>
+```
+
+### Template Structure
+
+<Accordion title="Navbar Components Breakdown">
+  **Outer Container**
+  - `<nav class="navbar">` - Main navigation wrapper with semantic HTML5
+  
+  **Inner Container**
+  - `<div class="container">` - Content container for layout control
+  
+  **Logo Section**
+  - `<div class="logo">` - Logo wrapper
+  - `the_custom_logo()` - Displays the custom logo set in Customizer
+  
+  **Menu Section**
+  - `wp_nav_menu()` - WordPress function to render the navigation menu
+  - `theme_location => 'primary'` - Targets the primary menu location
+  - `menu_class => 'menu'` - Adds custom CSS class to menu `<ul>`
+</Accordion>
+
+## Setting Up Your Menu
+
+<Steps>
+  <Step title="Access Menu Settings">
+    Navigate to **Appearance > Menus** in your WordPress admin dashboard.
+  </Step>
+  
+  <Step title="Create a New Menu">
+    Click **create a new menu**, give it a descriptive name (e.g., "Main Navigation"), and click **Create Menu**.
+  </Step>
+  
+  <Step title="Add Menu Items">
+    From the left panel, add items to your menu:
+    - **Pages**: Add existing pages
+    - **Posts**: Add individual posts
+    - **Custom Links**: Add external URLs
+    - **Categories**: Add category archives
+  </Step>
+  
+  <Step title="Organize Menu Structure">
+    Drag and drop menu items to:
+    - Reorder items
+    - Create submenus (indent items to make them children)
+    - Create multi-level dropdown menus
+  </Step>
+  
+  <Step title="Assign to Location">
+    In the **Menu Settings** section at the bottom, check the box for **"Menú Principal"** under Display location.
+  </Step>
+  
+  <Step title="Save Menu">
+    Click **Save Menu** to apply your changes.
+  </Step>
+</Steps>
+
+<Tip>
+  You can create multiple menus and switch between them by assigning different menus to the "Menú Principal" location.
+</Tip>
+
+## Including Navigation in Templates
+
+To include the navigation bar in your theme templates:
+
+```php
+<?php get_template_part('template-parts/navbar'); ?>
+```
+
+**Common placement locations:**
+
+<Tabs>
+  <Tab title="header.php">
+    ```php header.php
+    <!DOCTYPE html>
+    <html <?php language_attributes(); ?>>
+    <head>
+        <meta charset="<?php bloginfo('charset'); ?>">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <?php wp_head(); ?>
+    </head>
+    <body <?php body_class(); ?>>
+    <?php wp_body_open(); ?>
+    
+    <?php get_template_part('template-parts/navbar'); ?>
+    ```
+  </Tab>
+  
+  <Tab title="index.php">
+    ```php index.php
+    <?php get_header(); ?>
+    
+    <?php get_template_part('template-parts/navbar'); ?>
+    
+    <main>
+        <!-- Your content here -->
+    </main>
+    
+    <?php get_footer(); ?>
+    ```
+  </Tab>
+  
+  <Tab title="page.php">
+    ```php page.php
+    <?php get_header(); ?>
+    
+    <?php get_template_part('template-parts/navbar'); ?>
+    
+    <div class="page-content">
+        <?php
+        while (have_posts()) {
+            the_post();
+            the_content();
+        }
+        ?>
+    </div>
+    
+    <?php get_footer(); ?>
+    ```
+  </Tab>
+</Tabs>
+
+## Customizing Menu Output
+
+### Basic wp_nav_menu() Parameters
+
+```php
+wp_nav_menu(array(
+    'theme_location'  => 'primary',
+    'menu_class'      => 'menu',
+    'container'       => 'div',
+    'container_class' => 'menu-container',
+    'menu_id'         => 'primary-menu',
+    'fallback_cb'     => 'wp_page_menu',
+));
+```
+
+<ParamField path="theme_location" type="string" required>
+  The registered menu location to display (use `'primary'` for Tohka)
+</ParamField>
+
+<ParamField path="menu_class" type="string" default="menu">
+  CSS class applied to the `<ul>` element
+</ParamField>
+
+<ParamField path="container" type="string" default="div">
+  HTML element wrapping the menu (use `false` for no wrapper)
+</ParamField>
+
+<ParamField path="container_class" type="string">
+  CSS class for the container element
+</ParamField>
+
+<ParamField path="menu_id" type="string">
+  ID attribute for the `<ul>` element
+</ParamField>
+
+<ParamField path="fallback_cb" type="string" default="wp_page_menu">
+  Function to call if no menu is assigned to the location
+</ParamField>
+
+### Advanced Customization Examples
+
+<Accordion title="Remove Container Wrapper">
+  ```php
+  wp_nav_menu(array(
+      'theme_location' => 'primary',
+      'menu_class'     => 'menu',
+      'container'      => false, // No wrapper div
+  ));
+  ```
+  
+  **Output:**
+  ```html
+  <ul class="menu">
+      <li><a href="...">Item</a></li>
+  </ul>
+  ```
+</Accordion>
+
+<Accordion title="Custom Depth (Limit Submenus)">
+  ```php
+  wp_nav_menu(array(
+      'theme_location' => 'primary',
+      'menu_class'     => 'menu',
+      'depth'          => 2, // Only 2 levels deep
+  ));
+  ```
+  
+  Limits menu to 2 levels (parent and one level of children).
+</Accordion>
+
+<Accordion title="Custom Walker Class">
+  ```php
+  wp_nav_menu(array(
+      'theme_location' => 'primary',
+      'menu_class'     => 'menu',
+      'walker'         => new Custom_Nav_Walker(),
+  ));
+  ```
+  
+  Use a custom walker class to completely control menu HTML output.
+</Accordion>
+
+<Accordion title="Add Custom Link Attributes">
+  ```php
+  wp_nav_menu(array(
+      'theme_location'  => 'primary',
+      'menu_class'      => 'menu',
+      'link_before'     => '<span>',
+      'link_after'      => '</span>',
+      'items_wrap'      => '<ul id="%1$s" class="%2$s" role="navigation">%3$s</ul>',
+  ));
+  ```
+</Accordion>
+
+## Styling the Navigation
+
+Add custom styles for your navigation menu:
+
+```css
+/* Navigation bar */
+.navbar {
+    background: #ffffff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* Container layout */
+.navbar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Logo styling */
+.navbar .logo {
+    flex-shrink: 0;
+}
+
+.navbar .logo img {
+    height: 50px;
+    width: auto;
+}
+
+/* Menu list */
+.menu {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 2rem;
+}
+
+/* Menu items */
+.menu li {
+    position: relative;
+}
+
+/* Menu links */
+.menu a {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    display: block;
+    transition: color 0.2s;
+}
+
+.menu a:hover {
+    color: #007bff;
+}
+
+/* Current page indicator */
+.menu .current-menu-item > a,
+.menu .current_page_item > a {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+}
+
+/* Dropdown menus */
+.menu .sub-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #ffffff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    min-width: 200px;
+    padding: 0.5rem 0;
+    list-style: none;
+}
+
+.menu li:hover > .sub-menu {
+    display: block;
+}
+
+.menu .sub-menu a {
+    padding: 0.75rem 1.5rem;
+}
+
+.menu .sub-menu a:hover {
+    background: #f8f9fa;
+}
+```
+
+<Warning>
+  Remember to make your navigation responsive for mobile devices. Consider adding a hamburger menu for smaller screens.
+</Warning>
+
+## Mobile Navigation
+
+Implement a responsive mobile menu:
+
+<Accordion title="Mobile Menu HTML (Updated navbar.php)">
+  ```php
+  <nav class="navbar">
+      <div class="container">
+
+          <div class="logo">
+              <?php the_custom_logo(); ?>
+          </div>
+
+          <button class="mobile-toggle" aria-label="Toggle navigation">
+              <span></span>
+              <span></span>
+              <span></span>
+          </button>
+
+          <?php
+          wp_nav_menu(array(
+              'theme_location' => 'primary',
+              'menu_class'     => 'menu',
+              'container'      => 'div',
+              'container_class' => 'menu-wrapper',
+          ));
+          ?>
+
+      </div>
+  </nav>
+  ```
+</Accordion>
+
+<Accordion title="Mobile Menu CSS">
+  ```css
+  /* Hide toggle button on desktop */
+  .mobile-toggle {
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      background: none;
+      border: none;
+      cursor: pointer;
+  }
+  
+  .mobile-toggle span {
+      width: 25px;
+      height: 3px;
+      background: #333;
+      transition: 0.3s;
+  }
+  
+  /* Mobile styles */
+  @media (max-width: 768px) {
+      .mobile-toggle {
+          display: flex;
+      }
+      
+      .menu-wrapper {
+          position: fixed;
+          top: 70px;
+          left: 0;
+          right: 0;
+          background: #ffffff;
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.3s;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+      
+      .menu-wrapper.active {
+          max-height: 500px;
+      }
+      
+      .menu {
+          flex-direction: column;
+          gap: 0;
+      }
+      
+      .menu li {
+          border-bottom: 1px solid #eee;
+      }
+      
+      .menu a {
+          padding: 1rem 2rem;
+      }
+      
+      .menu .sub-menu {
+          position: static;
+          box-shadow: none;
+          padding-left: 1rem;
+      }
+  }
+  ```
+</Accordion>
+
+<Accordion title="Mobile Menu JavaScript">
+  ```javascript
+  document.addEventListener('DOMContentLoaded', function() {
+      const toggle = document.querySelector('.mobile-toggle');
+      const menu = document.querySelector('.menu-wrapper');
+      
+      if (toggle && menu) {
+          toggle.addEventListener('click', function() {
+              menu.classList.toggle('active');
+              toggle.classList.toggle('active');
+          });
+      }
+  });
+  ```
+</Accordion>
+
+## Adding Custom Logo
+
+The navigation template uses `the_custom_logo()` which displays the logo set in the Customizer:
+
+<Steps>
+  <Step title="Open Customizer">
+    Go to **Appearance > Customize** in WordPress admin.
+  </Step>
+  
+  <Step title="Navigate to Site Identity">
+    Click on **Site Identity** section.
+  </Step>
+  
+  <Step title="Upload Logo">
+    Click **Select Logo** and upload your logo image.
+  </Step>
+  
+  <Step title="Crop if Needed">
+    Adjust the crop area if prompted.
+  </Step>
+  
+  <Step title="Publish">
+    Click **Publish** to save your changes.
+  </Step>
+</Steps>
+
+<Tip>
+  Recommended logo dimensions: 250px × 100px for best results across devices.
+</Tip>
+
+## Adding Multiple Menu Locations
+
+You can register additional menu locations for other areas of your site:
+
+```php inc/setup.php
+register_nav_menus(array(
+    'primary' => __('Menú Principal', 'tokha'),
+    'footer'  => __('Menú de Pie de Página', 'tokha'),
+    'social'  => __('Enlaces Sociales', 'tokha'),
+));
+```
+
+Then use them in templates:
+
+```php
+<!-- Footer menu -->
+<?php
+wp_nav_menu(array(
+    'theme_location' => 'footer',
+    'menu_class'     => 'footer-menu',
+));
+?>
+
+<!-- Social menu -->
+<?php
+wp_nav_menu(array(
+    'theme_location' => 'social',
+    'menu_class'     => 'social-menu',
+    'link_before'    => '<span class="screen-reader-text">',
+    'link_after'     => '</span>',
+));
+?>
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Semantic HTML" icon="code">
+    Use the `<nav>` element for navigation and proper ARIA attributes for accessibility.
+  </Card>
+  
+  <Card title="Mobile First" icon="mobile">
+    Design your navigation with mobile devices in mind first, then enhance for desktop.
+  </Card>
+  
+  <Card title="Keyboard Navigation" icon="keyboard">
+    Ensure all menu items are accessible via keyboard for accessibility compliance.
+  </Card>
+  
+  <Card title="Clear Hierarchy" icon="sitemap">
+    Keep menu structure simple with clear hierarchy - avoid too many nested levels.
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<Accordion title="Menu not appearing">
+  1. Verify a menu is created and assigned to "Menú Principal" location
+  2. Check that `wp_nav_menu()` is called with `theme_location => 'primary'`
+  3. Ensure the navbar template part is included in your theme
+  4. Check for PHP errors in debug mode
+</Accordion>
+
+<Accordion title="Dropdown menus not working">
+  1. Verify parent-child relationships are set correctly in menu admin
+  2. Check that CSS for `.sub-menu` is included
+  3. Test with JavaScript disabled to ensure CSS-only dropdowns work
+  4. Inspect HTML to verify nested `<ul>` structure is present
+</Accordion>
+
+<Accordion title="Logo not displaying">
+  1. Verify logo is uploaded in Customizer > Site Identity
+  2. Check that `add_theme_support('custom-logo')` is called in setup
+  3. Ensure CSS doesn't hide the logo element
+  4. Check image file permissions and URL
+</Accordion>
+
+<Accordion title="Mobile menu not toggling">
+  1. Verify JavaScript is loaded and not showing console errors
+  2. Check that `.mobile-toggle` button is present in HTML
+  3. Ensure jQuery or vanilla JS toggle code is working
+  4. Test class toggling in browser developer tools
+</Accordion>
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Theme Setup" icon="gear" href="/features/theme-setup">
+    Learn about menu registration in theme setup
+  </Card>
+  
+  <Card title="Customization" icon="palette" href="/customization/theme-structure">
+    Explore theme customization options
+  </Card>
+</CardGroup>

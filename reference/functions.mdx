@@ -1,0 +1,361 @@
+---
+title: 'Functions'
+description: 'Complete API reference for all Tohka Theme functions'
+---
+
+# Functions API Reference
+
+This page documents all core functions available in the Tohka Theme. These functions handle theme setup, asset loading, and widget registration.
+
+---
+
+## tokha_setup()
+
+Configures the base features and capabilities of the Tohka Theme. This function runs during WordPress initialization and sets up essential theme support features.
+
+**Location:** `inc/setup.php:14`
+
+### Parameters
+
+This function takes no parameters.
+
+### Return Value
+
+**Type:** `void`
+
+This function does not return a value.
+
+### Features Enabled
+
+The function enables the following WordPress features:
+
+<ResponseField name="title-tag" type="theme_support">
+  Allows WordPress to automatically control the document `<title>` tag. WordPress will generate the title based on the page being viewed.
+</ResponseField>
+
+<ResponseField name="post-thumbnails" type="theme_support">
+  Enables featured images for posts and pages. Users can set a featured image from the post editor.
+</ResponseField>
+
+<ResponseField name="html5" type="theme_support">
+  Improves HTML5 compatibility for core WordPress features:
+  - `search-form` - Search form markup
+  - `comment-form` - Comment form markup
+  - `comment-list` - Comment list markup
+  - `gallery` - Gallery markup
+  - `caption` - Image caption markup
+</ResponseField>
+
+<ResponseField name="align-wide" type="theme_support">
+  Enables wide and full-width alignment options for Gutenberg blocks and page builders like Elementor.
+</ResponseField>
+
+<ResponseField name="primary" type="nav_menu">
+  Registers a primary navigation menu location with the display name "Menú Principal".
+</ResponseField>
+
+### Usage Example
+
+```php
+// This function is automatically hooked and called by WordPress
+// You don't need to call it manually
+
+// The function is hooked like this:
+add_action('after_setup_theme', 'tokha_setup');
+```
+
+### Source Code
+
+```php
+function tokha_setup() {
+
+    /**
+     * Permite que WordPress controle el <title>
+     */
+    add_theme_support('title-tag');
+
+    /**
+     * Habilita imágenes destacadas en posts y páginas
+     */
+    add_theme_support('post-thumbnails');
+
+    /**
+     * Mejora compatibilidad con HTML5
+     */
+    add_theme_support('html5', array(
+        'search-form',
+        'comment-form',
+        'comment-list',
+        'gallery',
+        'caption'
+    ));
+
+    /**
+     * Soporte para bloques alineados (Gutenberg / Elementor)
+     */
+    add_theme_support('align-wide');
+    
+
+    register_nav_menus(
+        array(
+        'primary' => __('Menú Principal', 'tokha'),
+    ));
+
+}
+```
+
+<Note>
+  This function is automatically executed during the `after_setup_theme` hook. You should not call it directly.
+</Note>
+
+---
+
+## tokha_assets()
+
+Registers and enqueues all theme stylesheets and JavaScript files. This function handles asset loading with proper versioning and dependency management.
+
+**Location:** `inc/assets.php:14`
+
+### Parameters
+
+This function takes no parameters.
+
+### Return Value
+
+**Type:** `void`
+
+This function does not return a value.
+
+### Assets Loaded
+
+#### Stylesheets
+
+<ResponseField name="tohka-ani" type="stylesheet">
+  **File:** `/assets/css/ani.css`  
+  **Version:** 1.0  
+  **Media:** all  
+  **Dependencies:** none
+  
+  Animation and visual effects stylesheet. The CSS file names are defined in an array at the top of the function for easy management.
+</ResponseField>
+
+#### JavaScript
+
+<ResponseField name="tokha-main" type="script">
+  **File:** `/assets/js/main.js`  
+  **Version:** Dynamic (uses `filemtime()`)  
+  **Location:** Footer  
+  **Dependencies:** none
+  
+  Main theme JavaScript file. Version is automatically generated using the file's modification time to prevent browser caching issues.
+</ResponseField>
+
+### Usage Example
+
+```php
+// This function is automatically hooked and called by WordPress
+// You don't need to call it manually
+
+// The function is hooked like this:
+add_action('wp_enqueue_scripts', 'tokha_assets');
+```
+
+### Adding Custom CSS Files
+
+To add additional CSS files, modify the `$css_files` array in `inc/assets.php`:
+
+```php
+// Add your CSS file names without the .css extension
+$css_files = array('ani', 'custom', 'utilities');
+```
+
+The function will automatically:
+- Generate a unique handle: `tohka-{filename}`
+- Load from: `/assets/css/{filename}.css`
+- Apply version: `1.0`
+- Use media: `all`
+
+### Source Code
+
+```php
+function tokha_assets() {
+
+    /**
+     * =========================
+     *  ESTILOS
+     * =========================
+     */
+
+    // cargando hojas de estilos 
+
+    $css_files = array('ani'); // Agrega aquí los nombres de tus archivos CSS sin la extensión
+
+        foreach ($css_files as $file) {
+
+            wp_enqueue_style(
+                'tohka-' . $file, // handle único
+                get_template_directory_uri() . "/assets/css/{$file}.css",
+                array(),          // sin dependencias
+                '1.0',            // versión fija
+                'all'
+            );
+
+        }
+
+    /**
+     * =========================
+     *  SCRIPTS
+     * =========================
+     */
+
+    // Script principal (cargado en footer)
+    wp_enqueue_script(
+        'tokha-main',
+        get_template_directory_uri() . '/assets/js/main.js',
+        array(),
+        filemtime(get_template_directory() . '/assets/js/main.js'),
+        true
+    );
+
+}
+```
+
+<Warning>
+  The `style.css` file is currently not being enqueued. If you need to use it, uncomment the relevant section in `inc/assets.php`.
+</Warning>
+
+<Note>
+  JavaScript files are loaded in the footer (`true` as the last parameter) for better page performance.
+</Note>
+
+---
+
+## tohka_widgets_init()
+
+Registers widget areas (sidebars) for the theme. This function defines the structure and HTML wrapping for widgets displayed in sidebars.
+
+**Location:** `inc/sidebar.php:12`
+
+### Parameters
+
+This function takes no parameters.
+
+### Return Value
+
+**Type:** `void`
+
+This function does not return a value.
+
+### Registered Sidebars
+
+<ResponseField name="sidebar-1" type="sidebar">
+  **Name:** Sidebar Principal  
+  **ID:** `sidebar-1`  
+  **Description:** Widgets del sidebar principal
+  
+  HTML Structure:
+  - **before_widget:** `<div class="widget">`
+  - **after_widget:** `</div>`
+  - **before_title:** `<h3 class="widget-title">`
+  - **after_title:** `</h3>`
+</ResponseField>
+
+### Usage Example
+
+```php
+// This function is automatically hooked and called by WordPress
+// You don't need to call it manually
+
+// The function is hooked like this:
+add_action('widgets_init', 'tohka_widgets_init');
+
+// To display the sidebar in your templates:
+<?php
+if (is_active_sidebar('sidebar-1')) {
+    dynamic_sidebar('sidebar-1');
+}
+?>
+```
+
+### Adding Additional Sidebars
+
+To register more sidebars, add additional `register_sidebar()` calls within the function:
+
+```php
+function tohka_widgets_init() {
+
+    // Existing sidebar
+    register_sidebar(array(
+        'name'          => 'Sidebar Principal',
+        'id'            => 'sidebar-1',
+        'description'   => 'Widgets del sidebar principal',
+        'before_widget' => '<div class="widget">',
+        'after_widget'  => '</div>',
+        'before_title'  => '<h3 class="widget-title">',
+        'after_title'   => '</h3>',
+    ));
+
+    // Add a footer sidebar
+    register_sidebar(array(
+        'name'          => 'Footer Sidebar',
+        'id'            => 'footer-1',
+        'description'   => 'Widgets for the footer area',
+        'before_widget' => '<div class="footer-widget">',
+        'after_widget'  => '</div>',
+        'before_title'  => '<h4 class="footer-widget-title">',
+        'after_title'   => '</h4>',
+    ));
+
+}
+```
+
+### Source Code
+
+```php
+function tohka_widgets_init() {
+
+    register_sidebar(array(
+        'name'          => 'Sidebar Principal',
+        'id'            => 'sidebar-1',
+        'description'   => 'Widgets del sidebar principal',
+        'before_widget' => '<div class="widget">',
+        'after_widget'  => '</div>',
+        'before_title'  => '<h3 class="widget-title">',
+        'after_title'   => '</h3>',
+    ));
+
+}
+```
+
+<Note>
+  Widget areas must be registered during the `widgets_init` hook to be available in the WordPress admin.
+</Note>
+
+---
+
+## Helper Functions
+
+Tohka Theme also uses standard WordPress template functions throughout its templates:
+
+<Accordion title="WordPress Template Tags Used">
+
+### Core Template Functions
+
+- `get_header()` - Loads the header.php template
+- `get_footer()` - Loads the footer.php template
+- `get_template_directory()` - Returns the absolute path to the theme directory
+- `get_template_directory_uri()` - Returns the URL to the theme directory
+- `wp_head()` - Outputs scripts and styles in the `<head>` section
+- `wp_footer()` - Outputs scripts before the closing `</body>` tag
+- `language_attributes()` - Outputs language attributes for the `<html>` tag
+- `bloginfo('charset')` - Outputs the site character set
+- `body_class()` - Outputs CSS classes for the `<body>` tag
+- `the_custom_logo()` - Displays the custom logo set in the Customizer
+- `wp_nav_menu()` - Displays a navigation menu
+- `have_posts()` - Checks if there are posts to display
+- `the_post()` - Sets up post data
+- `the_content()` - Displays the post content
+
+These functions are part of WordPress core and are documented in the [WordPress Developer Reference](https://developer.wordpress.org/reference/).
+
+</Accordion>

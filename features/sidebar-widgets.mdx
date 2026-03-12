@@ -1,0 +1,471 @@
+---
+title: 'Sidebar Widgets'
+description: 'Configure and customize widget areas in Tohka theme'
+icon: 'sidebar'
+---
+
+## Overview
+
+Tohka provides a customizable sidebar widget area for displaying dynamic content like recent posts, categories, search forms, and custom widgets. The sidebar system is configured through the `tohka_widgets_init()` function.
+
+<Note>
+  Widget configuration is located in `inc/sidebar.php` and registers automatically on theme activation.
+</Note>
+
+## Widget Area Registration
+
+The complete sidebar registration code:
+
+```php inc/sidebar.php
+function tohka_widgets_init() {
+
+    register_sidebar(array(
+        'name'          => 'Sidebar Principal',
+        'id'            => 'sidebar-1',
+        'description'   => 'Widgets del sidebar principal',
+        'before_widget' => '<div class="widget">',
+        'after_widget'  => '</div>',
+        'before_title'  => '<h3 class="widget-title">',
+        'after_title'   => '</h3>',
+    ));
+
+}
+
+add_action('widgets_init', 'tohka_widgets_init');
+```
+
+## Sidebar Configuration
+
+### Primary Sidebar Details
+
+<ParamField path="name" type="string" required>
+  **Sidebar Principal** - The display name shown in WordPress admin
+</ParamField>
+
+<ParamField path="id" type="string" required>
+  **sidebar-1** - Unique identifier used in template files
+</ParamField>
+
+<ParamField path="description" type="string">
+  **Widgets del sidebar principal** - Helpful text shown in the admin area
+</ParamField>
+
+<ParamField path="before_widget" type="string" default="<div class='widget'>">
+  HTML markup inserted before each widget
+</ParamField>
+
+<ParamField path="after_widget" type="string" default="</div>">
+  HTML markup inserted after each widget
+</ParamField>
+
+<ParamField path="before_title" type="string" default="<h3 class='widget-title'>">
+  HTML markup inserted before widget titles
+</ParamField>
+
+<ParamField path="after_title" type="string" default="</h3>">
+  HTML markup inserted after widget titles
+</ParamField>
+
+## Widget Markup Structure
+
+When you add widgets to the sidebar, they render with the following HTML structure:
+
+```html
+<div class="widget">
+    <h3 class="widget-title">Widget Title</h3>
+    <!-- Widget content here -->
+</div>
+```
+
+<Tip>
+  The `.widget` and `.widget-title` classes can be styled in your CSS to control the appearance of all widgets uniformly.
+</Tip>
+
+## Using Widgets in WordPress Admin
+
+<Steps>
+  <Step title="Navigate to Widgets">
+    Go to **Appearance > Widgets** in your WordPress admin dashboard.
+  </Step>
+  
+  <Step title="Locate Sidebar Principal">
+    Find the **"Sidebar Principal"** widget area in the list of available areas.
+  </Step>
+  
+  <Step title="Add widgets">
+    Drag and drop widgets from the available widgets panel into the "Sidebar Principal" area, or click the **+** button to add widgets.
+  </Step>
+  
+  <Step title="Configure widgets">
+    Click on each widget to expand its settings and configure options like title, content, and display preferences.
+  </Step>
+  
+  <Step title="Save changes">
+    Click **Save** or **Update** on each widget to apply your changes.
+  </Step>
+</Steps>
+
+## Displaying the Sidebar in Templates
+
+To display the sidebar in your theme templates, use the `dynamic_sidebar()` function:
+
+```php
+<?php
+if (is_active_sidebar('sidebar-1')) {
+    dynamic_sidebar('sidebar-1');
+}
+?>
+```
+
+<Accordion title="Complete sidebar template example">
+  ```php sidebar.php
+  <?php
+  /**
+   * The sidebar containing the main widget area
+   */
+  
+  if (!is_active_sidebar('sidebar-1')) {
+      return;
+  }
+  ?>
+  
+  <aside id="secondary" class="widget-area">
+      <?php dynamic_sidebar('sidebar-1'); ?>
+  </aside>
+  ```
+</Accordion>
+
+### Including Sidebar in Page Templates
+
+```php
+<div class="content-area">
+    <main>
+        <?php
+        // Your main content here
+        while (have_posts()) {
+            the_post();
+            the_content();
+        }
+        ?>
+    </main>
+    
+    <?php get_sidebar(); // Loads sidebar.php ?>
+</div>
+```
+
+## Common Widget Types
+
+<CardGroup cols={2}>
+  <Card title="Search" icon="magnifying-glass">
+    Add a search form to help visitors find content quickly.
+  </Card>
+  
+  <Card title="Recent Posts" icon="clock">
+    Display your latest blog posts with customizable count.
+  </Card>
+  
+  <Card title="Categories" icon="folder">
+    Show a list of post categories for easy navigation.
+  </Card>
+  
+  <Card title="Tag Cloud" icon="tags">
+    Display popular tags in a visual cloud format.
+  </Card>
+  
+  <Card title="Archives" icon="box-archive">
+    Organize posts by month/year for temporal browsing.
+  </Card>
+  
+  <Card title="Custom HTML" icon="code">
+    Add custom HTML, text, or embedded content.
+  </Card>
+</CardGroup>
+
+## Customizing Widget Markup
+
+You can customize the HTML wrapper and title tags by modifying the registration parameters:
+
+### Custom Widget Wrapper
+
+```php
+register_sidebar(array(
+    'name'          => 'Sidebar Principal',
+    'id'            => 'sidebar-1',
+    'description'   => 'Widgets del sidebar principal',
+    'before_widget' => '<section class="widget %1$s %2$s">',
+    'after_widget'  => '</section>',
+    'before_title'  => '<h3 class="widget-title">',
+    'after_title'   => '</h3>',
+));
+```
+
+<Note>
+  The `%1$s` and `%2$s` placeholders in `before_widget` are automatically replaced with the widget ID and class name.
+</Note>
+
+### Custom Title Styling
+
+```php
+'before_title'  => '<h2 class="widget-heading"><span class="title-icon">📌</span>',
+'after_title'   => '</h2>',
+```
+
+### Bootstrap-Style Widgets
+
+```php
+register_sidebar(array(
+    'name'          => 'Sidebar Principal',
+    'id'            => 'sidebar-1',
+    'description'   => 'Widgets del sidebar principal',
+    'before_widget' => '<div class="card mb-4">',
+    'after_widget'  => '</div>',
+    'before_title'  => '<div class="card-header"><h3>',
+    'after_title'   => '</h3></div><div class="card-body">',
+));
+```
+
+<Warning>
+  If you change widget markup structure, make sure to update `after_widget` to close all opened HTML tags properly.
+</Warning>
+
+## Adding Multiple Sidebar Areas
+
+You can register additional sidebar areas for different parts of your site:
+
+```php
+function tohka_widgets_init() {
+
+    // Primary sidebar
+    register_sidebar(array(
+        'name'          => 'Sidebar Principal',
+        'id'            => 'sidebar-1',
+        'description'   => 'Widgets del sidebar principal',
+        'before_widget' => '<div class="widget">',
+        'after_widget'  => '</div>',
+        'before_title'  => '<h3 class="widget-title">',
+        'after_title'   => '</h3>',
+    ));
+    
+    // Footer widgets
+    register_sidebar(array(
+        'name'          => 'Footer Widgets',
+        'id'            => 'footer-widgets',
+        'description'   => 'Widget area for footer',
+        'before_widget' => '<div class="footer-widget">',
+        'after_widget'  => '</div>',
+        'before_title'  => '<h4 class="footer-widget-title">',
+        'after_title'   => '</h4>',
+    ));
+    
+    // Shop sidebar (for WooCommerce)
+    register_sidebar(array(
+        'name'          => 'Shop Sidebar',
+        'id'            => 'shop-sidebar',
+        'description'   => 'Widgets for shop pages',
+        'before_widget' => '<div class="shop-widget">',
+        'after_widget'  => '</div>',
+        'before_title'  => '<h3 class="shop-widget-title">',
+        'after_title'   => '</h3>',
+    ));
+
+}
+
+add_action('widgets_init', 'tohka_widgets_init');
+```
+
+## Styling Widgets with CSS
+
+Add custom styles for widgets in your theme's CSS:
+
+```css
+/* Widget container */
+.widget {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+/* Widget titles */
+.widget-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #007bff;
+}
+
+/* Widget lists */
+.widget ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.widget ul li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.widget ul li:last-child {
+    border-bottom: none;
+}
+
+/* Widget links */
+.widget a {
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.widget a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+```
+
+## Creating Custom Widgets
+
+You can create custom widgets to extend functionality:
+
+<Accordion title="Example: Social Media Widget">
+  ```php
+  class Tokha_Social_Widget extends WP_Widget {
+  
+      public function __construct() {
+          parent::__construct(
+              'tokha_social_widget',
+              'Tokha Social Links',
+              array('description' => 'Display social media links')
+          );
+      }
+      
+      public function widget($args, $instance) {
+          echo $args['before_widget'];
+          
+          if (!empty($instance['title'])) {
+              echo $args['before_title'] . $instance['title'] . $args['after_title'];
+          }
+          
+          echo '<div class="social-links">';
+          if (!empty($instance['facebook'])) {
+              echo '<a href="' . esc_url($instance['facebook']) . '">Facebook</a>';
+          }
+          if (!empty($instance['twitter'])) {
+              echo '<a href="' . esc_url($instance['twitter']) . '">Twitter</a>';
+          }
+          echo '</div>';
+          
+          echo $args['after_widget'];
+      }
+      
+      public function form($instance) {
+          $title = !empty($instance['title']) ? $instance['title'] : '';
+          $facebook = !empty($instance['facebook']) ? $instance['facebook'] : '';
+          $twitter = !empty($instance['twitter']) ? $instance['twitter'] : '';
+          ?>
+          <p>
+              <label for="<?php echo $this->get_field_id('title'); ?>">Title:</label>
+              <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" 
+                     name="<?php echo $this->get_field_name('title'); ?>" 
+                     type="text" value="<?php echo esc_attr($title); ?>">
+          </p>
+          <p>
+              <label for="<?php echo $this->get_field_id('facebook'); ?>">Facebook URL:</label>
+              <input class="widefat" id="<?php echo $this->get_field_id('facebook'); ?>" 
+                     name="<?php echo $this->get_field_name('facebook'); ?>" 
+                     type="text" value="<?php echo esc_attr($facebook); ?>">
+          </p>
+          <p>
+              <label for="<?php echo $this->get_field_id('twitter'); ?>">Twitter URL:</label>
+              <input class="widefat" id="<?php echo $this->get_field_id('twitter'); ?>" 
+                     name="<?php echo $this->get_field_name('twitter'); ?>" 
+                     type="text" value="<?php echo esc_attr($twitter); ?>">
+          </p>
+          <?php
+      }
+      
+      public function update($new_instance, $old_instance) {
+          $instance = array();
+          $instance['title'] = (!empty($new_instance['title'])) ? strip_tags($new_instance['title']) : '';
+          $instance['facebook'] = (!empty($new_instance['facebook'])) ? esc_url_raw($new_instance['facebook']) : '';
+          $instance['twitter'] = (!empty($new_instance['twitter'])) ? esc_url_raw($new_instance['twitter']) : '';
+          return $instance;
+      }
+  }
+  
+  // Register the widget
+  function tokha_register_social_widget() {
+      register_widget('Tokha_Social_Widget');
+  }
+  add_action('widgets_init', 'tokha_register_social_widget');
+  ```
+</Accordion>
+
+## Block Editor (Gutenberg) Widgets
+
+<Note>
+  WordPress 5.8+ uses the block editor for widgets by default. The sidebar registration remains the same.
+</Note>
+
+To disable the block editor for widgets and use the classic widget interface:
+
+```php
+// Add to functions.php
+add_filter('use_widgets_block_editor', '__return_false');
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Semantic HTML" icon="code">
+    Use semantic HTML5 elements in widget markup for better accessibility and SEO.
+  </Card>
+  
+  <Card title="Descriptive IDs" icon="fingerprint">
+    Use clear, descriptive IDs for sidebars to make template code more readable.
+  </Card>
+  
+  <Card title="Check Active Status" icon="circle-check">
+    Always check if a sidebar is active before displaying it to avoid empty markup.
+  </Card>
+  
+  <Card title="Mobile Responsive" icon="mobile">
+    Ensure widget areas are responsive and work well on mobile devices.
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<Accordion title="Sidebar not appearing in admin">
+  1. Verify the `widgets_init` action is firing
+  2. Check for PHP errors in debug.log
+  3. Clear any caching plugins
+  4. Try switching to a default theme temporarily to isolate the issue
+</Accordion>
+
+<Accordion title="Widgets not displaying on frontend">
+  1. Ensure `dynamic_sidebar('sidebar-1')` is called in your template
+  2. Verify widgets are added in the admin area
+  3. Check that `is_active_sidebar('sidebar-1')` returns true
+  4. Inspect the HTML source to see if widget markup is present
+</Accordion>
+
+<Accordion title="Widget styling issues">
+  1. Inspect the generated HTML structure
+  2. Verify your CSS selectors match the widget classes
+  3. Check for CSS conflicts with other styles
+  4. Use browser developer tools to debug layout issues
+</Accordion>
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Theme Setup" icon="gear" href="/features/theme-setup">
+    Learn about core theme configuration
+  </Card>
+  
+  <Card title="Template Customization" icon="file-code" href="/customization/template-files">
+    Customize template files and layouts
+  </Card>
+</CardGroup>

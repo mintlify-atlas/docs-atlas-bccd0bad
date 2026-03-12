@@ -1,0 +1,250 @@
+---
+title: 'Theme Setup'
+description: 'Configure core theme features and capabilities in Tohka'
+icon: 'gear'
+---
+
+## Overview
+
+The theme setup process in Tohka configures essential WordPress features through the `tokha_setup()` function. This function runs on the `after_setup_theme` hook and establishes core theme capabilities including title management, featured images, HTML5 support, and navigation menus.
+
+<Note>
+  The setup function is located in `inc/setup.php` and executes automatically when WordPress loads the theme.
+</Note>
+
+## Core Setup Function
+
+The `tokha_setup()` function configures all essential theme features:
+
+```php inc/setup.php
+function tokha_setup() {
+
+    /**
+     * Permite que WordPress controle el <title>
+     */
+    add_theme_support('title-tag');
+
+    /**
+     * Habilita imágenes destacadas en posts y páginas
+     */
+    add_theme_support('post-thumbnails');
+
+    /**
+     * Mejora compatibilidad con HTML5
+     */
+    add_theme_support('html5', array(
+        'search-form',
+        'comment-form',
+        'comment-list',
+        'gallery',
+        'caption'
+    ));
+
+    /**
+     * Soporte para bloques alineados (Gutenberg / Elementor)
+     */
+    add_theme_support('align-wide');
+    
+
+    register_nav_menus(
+        array(
+        'primary' => __('Menú Principal', 'tokha'),
+    ));
+
+}
+
+add_action('after_setup_theme', 'tokha_setup');
+```
+
+## Theme Support Features
+
+### Title Tag Support
+
+Enables WordPress to manage the document title dynamically:
+
+```php
+add_theme_support('title-tag');
+```
+
+<Tip>
+  With `title-tag` support enabled, you don't need to manually add `<title>` tags in your header. WordPress handles this automatically based on the current page context.
+</Tip>
+
+**Benefits:**
+- Automatic SEO-friendly titles
+- Dynamic title generation based on page type
+- Plugin compatibility for SEO tools
+
+### Post Thumbnails (Featured Images)
+
+Enables featured image support for posts and pages:
+
+```php
+add_theme_support('post-thumbnails');
+```
+
+**What this enables:**
+- Featured image selector in post/page editor
+- `the_post_thumbnail()` template tag functionality
+- Custom image sizes registration
+- Better visual content presentation
+
+### HTML5 Support
+
+Enhances theme markup with modern HTML5 standards:
+
+```php
+add_theme_support('html5', array(
+    'search-form',
+    'comment-form',
+    'comment-list',
+    'gallery',
+    'caption'
+));
+```
+
+<Accordion title="What each HTML5 feature does">
+  - **search-form**: Outputs semantic search forms with proper HTML5 elements
+  - **comment-form**: Modernizes comment form markup
+  - **comment-list**: Uses HTML5 elements for comment listings
+  - **gallery**: Enhances gallery shortcode output
+  - **caption**: Improves image caption markup
+</Accordion>
+
+### Align Wide Support
+
+Enables wide and full-width block alignments for Gutenberg and page builders:
+
+```php
+add_theme_support('align-wide');
+```
+
+**Compatible with:**
+- Gutenberg block editor
+- Elementor page builder
+- Other modern page builders
+
+<Warning>
+  Make sure your theme's CSS properly handles `.alignwide` and `.alignfull` classes to prevent layout issues.
+</Warning>
+
+## Navigation Menu Registration
+
+Tohka registers a primary navigation menu location:
+
+```php
+register_nav_menus(
+    array(
+    'primary' => __('Menú Principal', 'tokha'),
+));
+```
+
+**Menu location:**
+- **ID**: `primary`
+- **Label**: "Menú Principal" (translatable)
+- **Usage**: Main site navigation
+
+### Setting Up Your Menu
+
+<Steps>
+  <Step title="Create a menu">
+    Navigate to **Appearance > Menus** in WordPress admin and create a new menu.
+  </Step>
+  
+  <Step title="Add menu items">
+    Add pages, posts, custom links, or categories to your menu structure.
+  </Step>
+  
+  <Step title="Assign to location">
+    In the menu settings, check the box for **"Menú Principal"** to assign it to the primary location.
+  </Step>
+  
+  <Step title="Save and view">
+    Save your menu and visit your site to see it in the navigation bar.
+  </Step>
+</Steps>
+
+## Customizing Theme Setup
+
+You can extend the theme setup by adding additional features:
+
+### Adding Custom Image Sizes
+
+```php
+function tokha_setup() {
+    // ... existing code ...
+    
+    // Add custom image sizes
+    add_image_size('tokha-large', 1200, 600, true);
+    add_image_size('tokha-thumbnail', 400, 300, true);
+}
+```
+
+### Adding More Menu Locations
+
+```php
+register_nav_menus(array(
+    'primary' => __('Menú Principal', 'tokha'),
+    'footer' => __('Menú de Pie de Página', 'tokha'),
+    'social' => __('Enlaces Sociales', 'tokha'),
+));
+```
+
+### Adding Custom Post Type Support
+
+```php
+function tokha_setup() {
+    // ... existing code ...
+    
+    // Enable post thumbnails for custom post types
+    add_post_type_support('your-post-type', 'thumbnail');
+}
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Keep It Modular" icon="cubes">
+    The setup file should only contain theme initialization code. Keep other functionality in separate files.
+  </Card>
+  
+  <Card title="Use Child Themes" icon="code-branch">
+    When customizing, consider using a child theme to preserve changes during updates.
+  </Card>
+  
+  <Card title="Test Compatibility" icon="vial">
+    Always test new theme supports with your content and plugins to ensure compatibility.
+  </Card>
+  
+  <Card title="Follow WordPress Standards" icon="wordpress">
+    Use WordPress coding standards and hooks for better plugin integration.
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<Accordion title="Featured images not showing">
+  Ensure `add_theme_support('post-thumbnails')` is called and regenerate thumbnails using a plugin like "Regenerate Thumbnails" if you added this support after creating content.
+</Accordion>
+
+<Accordion title="Menu not appearing">
+  1. Verify a menu is assigned to the "Menú Principal" location
+  2. Check that the menu has items
+  3. Ensure your theme template calls `wp_nav_menu()` with the correct location
+</Accordion>
+
+<Accordion title="Wide blocks not working">
+  Verify your theme's CSS includes styles for `.alignwide` and `.alignfull` classes, and ensure container widths allow for wider content.
+</Accordion>
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Assets Management" icon="file-code" href="/features/assets-management">
+    Learn how Tohka loads CSS and JavaScript files
+  </Card>
+  
+  <Card title="Navigation Menus" icon="bars" href="/features/navigation-menus">
+    Deep dive into menu implementation and customization
+  </Card>
+</CardGroup>

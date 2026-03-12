@@ -1,0 +1,728 @@
+---
+title: Adding Features
+description: Extend Tohka Theme with custom functionality, scripts, and WordPress features
+---
+
+Tohka Theme's modular architecture makes it easy to add new features without cluttering core files. This guide shows you how to extend the theme properly.
+
+## Adding New inc/ Modules
+
+The `/inc` directory is where all theme functionality lives. Each module handles a specific feature.
+
+<Steps>
+  <Step title="Create a new module file">
+    Create a PHP file in `inc/` for your feature:
+    
+    ```bash
+    touch inc/custom-post-types.php
+    ```
+  </Step>
+  
+  <Step title="Add your functionality">
+    Write your custom code in the new module:
+    
+    ```php inc/custom-post-types.php
+    <?php
+    /**
+     * Custom Post Types
+     *
+     * Registers custom post types for the theme
+     */
+    
+    function tohka_register_portfolio_cpt() {
+        $args = array(
+            'label'               => 'Portfolio',
+            'public'              => true,
+            'publicly_queryable'  => true,
+            'show_ui'             => true,
+            'show_in_menu'        => true,
+            'query_var'           => true,
+            'rewrite'             => array('slug' => 'portfolio'),
+            'capability_type'     => 'post',
+            'has_archive'         => true,
+            'hierarchical'        => false,
+            'menu_position'       => 5,
+            'menu_icon'           => 'dashicons-portfolio',
+            'supports'            => array('title', 'editor', 'thumbnail', 'excerpt'),
+            'show_in_rest'        => true,
+        );
+        
+        register_post_type('portfolio', $args);
+    }
+    add_action('init', 'tohka_register_portfolio_cpt');
+    ```
+  </Step>
+  
+  <Step title="Require the module in functions.php">
+    Add the module to `functions.php`:
+    
+    ```php functions.php
+    <?php
+    
+    require get_template_directory() . '/inc/setup.php';
+    require get_template_directory() . '/inc/assets.php';
+    require get_template_directory() . '/inc/sidebar.php';
+    require get_template_directory() . '/inc/custom-post-types.php';
+    ```
+  </Step>
+  
+  <Step title="Test your feature">
+    Visit the WordPress admin to verify your feature works. For custom post types, check the admin menu.
+  </Step>
+</Steps>
+
+<Warning>
+**Never add logic directly to functions.php.** Always create a new module in `/inc` and require it.
+</Warning>
+
+## Common Feature Modules
+
+### Custom Taxonomies
+
+Create `inc/custom-taxonomies.php`:
+
+```php inc/custom-taxonomies.php
+<?php
+/**
+ * Custom Taxonomies
+ *
+ * Registers custom taxonomies for the theme
+ */
+
+function tohka_register_project_category() {
+    $args = array(
+        'label'             => 'Project Categories',
+        'hierarchical'      => true,
+        'public'            => true,
+        'show_ui'           => true,
+        'show_admin_column' => true,
+        'show_in_nav_menus' => true,
+        'show_in_rest'      => true,
+        'rewrite'           => array('slug' => 'project-category'),
+    );
+    
+    register_taxonomy('project_category', array('portfolio'), $args);
+}
+add_action('init', 'tohka_register_project_category');
+```
+
+### Theme Customizer Settings
+
+Create `inc/customizer.php`:
+
+```php inc/customizer.php
+<?php
+/**
+ * Theme Customizer
+ *
+ * Adds customizer settings and controls
+ */
+
+function tohka_customize_register($wp_customize) {
+    // Add section
+    $wp_customize->add_section('tohka_colors', array(
+        'title'    => 'Theme Colors',
+        'priority' => 30,
+    ));
+    
+    // Add setting
+    $wp_customize->add_setting('primary_color', array(
+        'default'           => '#0073aa',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ));
+    
+    // Add control
+    $wp_customize->add_control(
+        new WP_Customize_Color_Control(
+            $wp_customize,
+            'primary_color',
+            array(
+                'label'    => 'Primary Color',
+                'section'  => 'tohka_colors',
+                'settings' => 'primary_color',
+            )
+        )
+    );
+}
+add_action('customize_register', 'tohka_customize_register');
+```
+
+### Custom Functions
+
+Create `inc/helpers.php` for utility functions:
+
+```php inc/helpers.php
+<?php
+/**
+ * Helper Functions
+ *
+ * Utility functions used throughout the theme
+ */
+
+/**
+ * Get post reading time
+ */
+function tohka_reading_time() {
+    $content = get_post_field('post_content', get_the_ID());
+    $word_count = str_word_count(strip_tags($content));
+    $reading_time = ceil($word_count / 200);
+    
+    return $reading_time . ' min read';
+}
+
+/**
+ * Get post view count
+ */
+function tohka_get_post_views($post_id) {
+    $count = get_post_meta($post_id, 'post_views_count', true);
+    return $count ? $count : 0;
+}
+
+/**
+ * Set post view count
+ */
+function tohka_set_post_views($post_id) {
+    $count = tohka_get_post_views($post_id);
+    $count++;
+    update_post_meta($post_id, 'post_views_count', $count);
+}
+```
+
+## Enqueuing Additional Scripts
+
+All JavaScript is enqueued in `inc/assets.php`. Here's how to add more:
+
+### Adding a New JavaScript File
+
+<Steps>
+  <Step title="Create the JavaScript file">
+    Add your script to `assets/js/`:
+    
+    ```bash
+    touch assets/js/slider.js
+    ```
+  </Step>
+  
+  <Step title="Write your JavaScript">
+    ```javascript assets/js/slider.js
+    document.addEventListener('DOMContentLoaded', function() {
+        const slider = document.querySelector('.slider');
+        
+        if (slider) {
+            // Initialize your slider
+            console.log('Slider initialized');
+        }
+    });
+    ```
+  </Step>
+  
+  <Step title="Enqueue in inc/assets.php">
+    Add to the `tokha_assets()` function:
+    
+    ```php inc/assets.php
+    function tokha_assets() {
+        // ... existing CSS enqueues ...
+        
+        /**
+         * =========================
+         *  SCRIPTS
+         * =========================
+         */
+        
+        // Main script
+        wp_enqueue_script(
+            'tokha-main',
+            get_template_directory_uri() . '/assets/js/main.js',
+            array(),
+            filemtime(get_template_directory() . '/assets/js/main.js'),
+            true
+        );
+        
+        // Slider script
+        wp_enqueue_script(
+            'tohka-slider',
+            get_template_directory_uri() . '/assets/js/slider.js',
+            array(), // or array('jquery') if you need jQuery
+            filemtime(get_template_directory() . '/assets/js/slider.js'),
+            true
+        );
+    }
+    ```
+  </Step>
+</Steps>
+
+### Understanding wp_enqueue_script()
+
+The `wp_enqueue_script()` function accepts these parameters:
+
+| Parameter | Description | Example |
+|-----------|-------------|--------|
+| `$handle` | Unique identifier | `'tohka-slider'` |
+| `$src` | File path/URL | `get_template_directory_uri() . '/assets/js/slider.js'` |
+| `$deps` | Dependencies (array) | `array('jquery')` |
+| `$ver` | Version number | `filemtime(...)` for cache busting |
+| `$in_footer` | Load in footer (boolean) | `true` (recommended) |
+
+<Tip>
+Always load scripts in the footer (`true`) unless they're required in the head. This improves page load performance.
+</Tip>
+
+### Adding jQuery Dependency
+
+If your script needs jQuery:
+
+```php inc/assets.php
+wp_enqueue_script(
+    'tohka-interactions',
+    get_template_directory_uri() . '/assets/js/interactions.js',
+    array('jquery'), // WordPress will load jQuery first
+    filemtime(get_template_directory() . '/assets/js/interactions.js'),
+    true
+);
+```
+
+### Passing Data to JavaScript
+
+Use `wp_localize_script()` to pass PHP data to your scripts:
+
+```php inc/assets.php
+wp_enqueue_script(
+    'tohka-ajax',
+    get_template_directory_uri() . '/assets/js/ajax.js',
+    array('jquery'),
+    '1.0',
+    true
+);
+
+wp_localize_script('tohka-ajax', 'tohkaData', array(
+    'ajaxurl' => admin_url('admin-ajax.php'),
+    'nonce'   => wp_create_nonce('tohka_nonce'),
+    'siteUrl' => home_url('/'),
+));
+```
+
+Access in JavaScript:
+
+```javascript assets/js/ajax.js
+console.log(tohkaData.ajaxurl); // Outputs admin-ajax.php URL
+console.log(tohkaData.siteUrl); // Outputs site URL
+```
+
+## WordPress Hooks and Filters
+
+### Action Hooks
+
+Action hooks let you inject functionality at specific points:
+
+```php inc/hooks.php
+<?php
+/**
+ * Theme Hooks
+ *
+ * Custom actions triggered throughout the theme
+ */
+
+// Add custom content after post content
+function tohka_after_post_content() {
+    if (is_single()) {
+        echo '<div class="post-meta-footer">';
+        echo '<p>Reading time: ' . tohka_reading_time() . '</p>';
+        echo '</div>';
+    }
+}
+add_action('the_content', 'tohka_after_post_content');
+
+// Add custom header content
+function tohka_custom_header() {
+    if (is_front_page()) {
+        echo '<div class="hero-banner">Welcome to our site!</div>';
+    }
+}
+add_action('wp_body_open', 'tohka_custom_header');
+```
+
+### Filter Hooks
+
+Filters modify existing content:
+
+```php inc/filters.php
+<?php
+/**
+ * Theme Filters
+ *
+ * Modify WordPress output
+ */
+
+// Modify excerpt length
+function tohka_excerpt_length($length) {
+    return 30;
+}
+add_filter('excerpt_length', 'tohka_excerpt_length');
+
+// Modify excerpt more text
+function tohka_excerpt_more($more) {
+    return '... <a href="' . get_permalink() . '" class="read-more">Continue Reading</a>';
+}
+add_filter('excerpt_more', 'tohka_excerpt_more');
+
+// Add custom body classes
+function tohka_body_classes($classes) {
+    if (is_singular()) {
+        $classes[] = 'singular-view';
+    }
+    return $classes;
+}
+add_filter('body_class', 'tohka_body_classes');
+```
+
+### Common Hooks Reference
+
+<Accordion title="Theme Setup Hooks">
+- `after_setup_theme` - Theme initialization (used in `inc/setup.php`)
+- `widgets_init` - Register sidebars and widgets
+- `init` - WordPress initialization (register post types, taxonomies)
+</Accordion>
+
+<Accordion title="Content Hooks">
+- `the_content` - Modify post content
+- `the_title` - Modify post titles
+- `the_excerpt` - Modify excerpts
+- `wp_nav_menu_items` - Modify menu items
+</Accordion>
+
+<Accordion title="Asset Hooks">
+- `wp_enqueue_scripts` - Enqueue CSS and JavaScript (used in `inc/assets.php`)
+- `admin_enqueue_scripts` - Enqueue admin-only assets
+- `login_enqueue_scripts` - Enqueue login page assets
+</Accordion>
+
+<Accordion title="Template Hooks">
+- `wp_head` - Output in `<head>` section
+- `wp_footer` - Output before `</body>`
+- `wp_body_open` - Output after `<body>` opens
+</Accordion>
+
+## Adding Theme Support Features
+
+Extend `inc/setup.php` to add WordPress features:
+
+```php inc/setup.php
+function tokha_setup() {
+    // Existing supports...
+    add_theme_support('title-tag');
+    add_theme_support('post-thumbnails');
+    add_theme_support('html5', array(
+        'search-form',
+        'comment-form',
+        'comment-list',
+        'gallery',
+        'caption'
+    ));
+    add_theme_support('align-wide');
+    
+    // Add custom logo support
+    add_theme_support('custom-logo', array(
+        'height'      => 100,
+        'width'       => 400,
+        'flex-height' => true,
+        'flex-width'  => true,
+    ));
+    
+    // Add custom header support
+    add_theme_support('custom-header', array(
+        'default-image'      => '',
+        'width'              => 1920,
+        'height'             => 500,
+        'flex-height'        => true,
+        'flex-width'         => true,
+    ));
+    
+    // Add custom background support
+    add_theme_support('custom-background', array(
+        'default-color' => 'ffffff',
+    ));
+    
+    // Add RSS feed links
+    add_theme_support('automatic-feed-links');
+    
+    // Add Gutenberg wide alignment
+    add_theme_support('align-wide');
+    
+    // Add responsive embeds
+    add_theme_support('responsive-embeds');
+    
+    // Add editor styles
+    add_theme_support('editor-styles');
+    add_editor_style('assets/css/editor-style.css');
+    
+    // Existing menu registration...
+    register_nav_menus(array(
+        'primary' => __('Menú Principal', 'tokha'),
+        'footer'  => __('Menú Footer', 'tokha'),
+    ));
+}
+
+add_action('after_setup_theme', 'tokha_setup');
+```
+
+## Adding Custom Image Sizes
+
+Define custom thumbnail sizes in `inc/setup.php`:
+
+```php inc/setup.php
+function tokha_setup() {
+    // Enable post thumbnails
+    add_theme_support('post-thumbnails');
+    
+    // Add custom image sizes
+    add_image_size('tohka-featured', 1200, 600, true);
+    add_image_size('tohka-portfolio', 800, 800, true);
+    add_image_size('tohka-thumbnail', 300, 300, true);
+}
+add_action('after_setup_theme', 'tokha_setup');
+```
+
+Use in templates:
+
+```php
+<?php the_post_thumbnail('tohka-featured'); ?>
+```
+
+## Creating Custom Widgets
+
+Create `inc/widgets.php`:
+
+```php inc/widgets.php
+<?php
+/**
+ * Custom Widgets
+ */
+
+class Tohka_Recent_Posts_Widget extends WP_Widget {
+    
+    public function __construct() {
+        parent::__construct(
+            'tohka_recent_posts',
+            'Tohka Recent Posts',
+            array('description' => 'Display recent posts with thumbnails')
+        );
+    }
+    
+    public function widget($args, $instance) {
+        echo $args['before_widget'];
+        
+        if (!empty($instance['title'])) {
+            echo $args['before_title'] . $instance['title'] . $args['after_title'];
+        }
+        
+        $query = new WP_Query(array(
+            'posts_per_page' => 5,
+            'post_status'    => 'publish',
+        ));
+        
+        if ($query->have_posts()) {
+            echo '<ul class="recent-posts-widget">';
+            while ($query->have_posts()) {
+                $query->the_post();
+                echo '<li>';
+                if (has_post_thumbnail()) {
+                    the_post_thumbnail('thumbnail');
+                }
+                echo '<a href="' . get_permalink() . '">' . get_the_title() . '</a>';
+                echo '</li>';
+            }
+            echo '</ul>';
+        }
+        
+        wp_reset_postdata();
+        echo $args['after_widget'];
+    }
+    
+    public function form($instance) {
+        $title = !empty($instance['title']) ? $instance['title'] : 'Recent Posts';
+        ?>
+        <p>
+            <label for="<?php echo $this->get_field_id('title'); ?>">Title:</label>
+            <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" 
+                   name="<?php echo $this->get_field_name('title'); ?>" 
+                   type="text" value="<?php echo esc_attr($title); ?>">
+        </p>
+        <?php
+    }
+    
+    public function update($new_instance, $old_instance) {
+        $instance = array();
+        $instance['title'] = (!empty($new_instance['title'])) ? strip_tags($new_instance['title']) : '';
+        return $instance;
+    }
+}
+
+function tohka_register_widgets() {
+    register_widget('Tohka_Recent_Posts_Widget');
+}
+add_action('widgets_init', 'tohka_register_widgets');
+```
+
+## AJAX Functionality
+
+Create `inc/ajax.php` for AJAX handlers:
+
+```php inc/ajax.php
+<?php
+/**
+ * AJAX Handlers
+ */
+
+function tohka_load_more_posts() {
+    // Verify nonce
+    check_ajax_referer('tohka_nonce', 'nonce');
+    
+    $paged = isset($_POST['page']) ? intval($_POST['page']) : 1;
+    
+    $query = new WP_Query(array(
+        'post_type'      => 'post',
+        'posts_per_page' => 6,
+        'paged'          => $paged,
+    ));
+    
+    if ($query->have_posts()) {
+        while ($query->have_posts()) {
+            $query->the_post();
+            get_template_part('template-parts/content', 'excerpt');
+        }
+    }
+    
+    wp_reset_postdata();
+    wp_die();
+}
+
+add_action('wp_ajax_load_more_posts', 'tohka_load_more_posts');
+add_action('wp_ajax_nopriv_load_more_posts', 'tohka_load_more_posts');
+```
+
+## Best Practices
+
+<Steps>
+  <Step title="Keep functions.php minimal">
+    Only use it to require module files—never add business logic
+  </Step>
+  
+  <Step title="One module, one responsibility">
+    Each `/inc` file should handle a specific feature area
+  </Step>
+  
+  <Step title="Use proper WordPress hooks">
+    Don't hack core functionality—use hooks and filters instead
+  </Step>
+  
+  <Step title="Cache-bust with filemtime()">
+    Automatically version assets based on file modification time
+  </Step>
+  
+  <Step title="Load scripts in footer">
+    Improves page load performance unless scripts are required in head
+  </Step>
+  
+  <Step title="Sanitize and validate data">
+    Always sanitize user input and validate data
+  </Step>
+  
+  <Step title="Follow WordPress coding standards">
+    Use WordPress naming conventions and code style
+  </Step>
+</Steps>
+
+## Example: Complete Feature Module
+
+Here's a complete example combining multiple concepts:
+
+```php inc/portfolio.php
+<?php
+/**
+ * Portfolio Feature Module
+ *
+ * Handles portfolio custom post type, taxonomy, and custom fields
+ */
+
+// Register portfolio post type
+function tohka_register_portfolio() {
+    register_post_type('portfolio', array(
+        'label'        => 'Portfolio',
+        'public'       => true,
+        'has_archive'  => true,
+        'supports'     => array('title', 'editor', 'thumbnail'),
+        'show_in_rest' => true,
+        'menu_icon'    => 'dashicons-portfolio',
+    ));
+    
+    register_taxonomy('portfolio_category', 'portfolio', array(
+        'label'        => 'Categories',
+        'hierarchical' => true,
+        'show_in_rest' => true,
+    ));
+}
+add_action('init', 'tohka_register_portfolio');
+
+// Add custom fields meta box
+function tohka_portfolio_meta_box() {
+    add_meta_box(
+        'portfolio_details',
+        'Project Details',
+        'tohka_portfolio_meta_box_callback',
+        'portfolio',
+        'normal',
+        'high'
+    );
+}
+add_action('add_meta_boxes', 'tohka_portfolio_meta_box');
+
+function tohka_portfolio_meta_box_callback($post) {
+    wp_nonce_field('tohka_save_portfolio_meta', 'tohka_portfolio_nonce');
+    
+    $client = get_post_meta($post->ID, '_portfolio_client', true);
+    $url = get_post_meta($post->ID, '_portfolio_url', true);
+    
+    ?>
+    <p>
+        <label for="portfolio_client">Client Name:</label>
+        <input type="text" id="portfolio_client" name="portfolio_client" 
+               value="<?php echo esc_attr($client); ?>" class="widefat">
+    </p>
+    <p>
+        <label for="portfolio_url">Project URL:</label>
+        <input type="url" id="portfolio_url" name="portfolio_url" 
+               value="<?php echo esc_url($url); ?>" class="widefat">
+    </p>
+    <?php
+}
+
+function tohka_save_portfolio_meta($post_id) {
+    if (!isset($_POST['tohka_portfolio_nonce'])) return;
+    if (!wp_verify_nonce($_POST['tohka_portfolio_nonce'], 'tohka_save_portfolio_meta')) return;
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+    
+    if (isset($_POST['portfolio_client'])) {
+        update_post_meta($post_id, '_portfolio_client', sanitize_text_field($_POST['portfolio_client']));
+    }
+    
+    if (isset($_POST['portfolio_url'])) {
+        update_post_meta($post_id, '_portfolio_url', esc_url_raw($_POST['portfolio_url']));
+    }
+}
+add_action('save_post_portfolio', 'tohka_save_portfolio_meta');
+```
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Theme Structure" href="/customization/theme-structure">
+    Review the complete architecture
+  </Card>
+  <Card title="Template Files" href="/customization/template-files">
+    Learn about WordPress templates
+  </Card>
+  <Card title="Styling" href="/customization/styling">
+    Understand CSS organization
+  </Card>
+</CardGroup>

@@ -1,0 +1,402 @@
+---
+title: 'Assets Management'
+description: 'Learn how Tohka handles CSS and JavaScript file loading'
+icon: 'file-code'
+---
+
+## Overview
+
+Tohka uses a modular asset management system through the `tokha_assets()` function to enqueue CSS and JavaScript files. The system is designed for maintainability, performance, and easy customization.
+
+<Note>
+  All asset loading is handled in `inc/assets.php` and hooks into WordPress's `wp_enqueue_scripts` action.
+</Note>
+
+## Asset Loading Function
+
+The complete asset loading implementation:
+
+```php inc/assets.php
+function tokha_assets() {
+
+    /**
+     * =========================
+     *  ESTILOS
+     * =========================
+     */
+
+    // cargando hojas de estilos 
+
+    $css_files = array('ani'); // Agrega aquí los nombres de tus archivos CSS sin la extensión
+
+        foreach ($css_files as $file) {
+
+            wp_enqueue_style(
+                'tohka-' . $file, // handle único
+                get_template_directory_uri() . "/assets/css/{$file}.css",
+                array(),          // sin dependencias
+                '1.0',            // versión fija
+                'all'
+            );
+
+        }
+    
+    /**
+     *  Hoja de estilos principal (style.css) pero comentada por ahora, ya que no se está usando.  
+     * wp_enqueue_style(
+     * 'tohka-style',
+     * get_template_directory_uri() . '/style.css',
+     * array(),
+     * '1.0',
+     * 'all'
+     * );
+     */ 
+
+
+
+    /**
+     * =========================
+     *  SCRIPTS
+     * =========================
+     */
+
+    // Script principal (cargado en footer)
+    wp_enqueue_script(
+        'tokha-main',
+        get_template_directory_uri() . '/assets/js/main.js',
+        array(),
+        filemtime(get_template_directory() . '/assets/js/main.js'),
+        true
+    );
+
+}
+
+add_action('wp_enqueue_scripts', 'tokha_assets');
+```
+
+## CSS Loading System
+
+### Dynamic CSS Enqueuing
+
+Tohka uses an array-based system for loading multiple CSS files:
+
+```php
+$css_files = array('ani'); // Agrega aquí los nombres de tus archivos CSS sin la extensión
+
+foreach ($css_files as $file) {
+    wp_enqueue_style(
+        'tohka-' . $file, // handle único
+        get_template_directory_uri() . "/assets/css/{$file}.css",
+        array(),          // sin dependencias
+        '1.0',            // versión fija
+        'all'
+    );
+}
+```
+
+**Current CSS files loaded:**
+- `ani.css` - Animation styles
+
+### Adding New CSS Files
+
+To add additional CSS files, simply add them to the array:
+
+<Tabs>
+  <Tab title="Simple Addition">
+    ```php
+    $css_files = array('ani', 'custom', 'typography');
+    ```
+  </Tab>
+  
+  <Tab title="With Comments">
+    ```php
+    $css_files = array(
+        'ani',        // Animation styles
+        'custom',     // Custom styles
+        'typography', // Font and text styles
+        'layout'      // Grid and layout
+    );
+    ```
+  </Tab>
+</Tabs>
+
+<Tip>
+  The system automatically prefixes each handle with `tohka-` to prevent conflicts with other themes and plugins.
+</Tip>
+
+### CSS File Parameters
+
+<ParamField path="handle" type="string" required>
+  Unique identifier for the stylesheet (automatically prefixed with `tohka-`)
+</ParamField>
+
+<ParamField path="src" type="string" required>
+  URL to the CSS file in `/assets/css/` directory
+</ParamField>
+
+<ParamField path="deps" type="array" default="array()">
+  Array of stylesheet handles this file depends on
+</ParamField>
+
+<ParamField path="ver" type="string" default="1.0">
+  Version number for cache busting
+</ParamField>
+
+<ParamField path="media" type="string" default="all">
+  Media type: `all`, `screen`, `print`, etc.
+</ParamField>
+
+## JavaScript Loading System
+
+### Main JavaScript File
+
+Tohka loads a single main JavaScript file with automatic cache busting:
+
+```php
+wp_enqueue_script(
+    'tokha-main',
+    get_template_directory_uri() . '/assets/js/main.js',
+    array(),
+    filemtime(get_template_directory() . '/assets/js/main.js'),
+    true
+);
+```
+
+**Key features:**
+- **Handle**: `tokha-main`
+- **Location**: `/assets/js/main.js`
+- **Cache busting**: Uses `filemtime()` for automatic version updates
+- **Footer loading**: Loaded in footer for better performance (last parameter `true`)
+
+<Warning>
+  The `filemtime()` function generates a unique version number based on the file's last modification time. This ensures browsers always load the latest version after updates.
+</Warning>
+
+### Cache Busting Explained
+
+```php
+filemtime(get_template_directory() . '/assets/js/main.js')
+```
+
+This function returns the last modified timestamp of the file, which:
+- Automatically updates when you modify the JavaScript file
+- Forces browsers to download the new version
+- Eliminates manual version number management
+
+**Example output**: `1678901234` (Unix timestamp)
+
+### Adding Additional JavaScript Files
+
+You can add more JavaScript files using the same pattern:
+
+```php
+// Script principal (cargado en footer)
+wp_enqueue_script(
+    'tokha-main',
+    get_template_directory_uri() . '/assets/js/main.js',
+    array(),
+    filemtime(get_template_directory() . '/assets/js/main.js'),
+    true
+);
+
+// Custom interactions script
+wp_enqueue_script(
+    'tokha-interactions',
+    get_template_directory_uri() . '/assets/js/interactions.js',
+    array('tokha-main'), // depends on main.js
+    filemtime(get_template_directory() . '/assets/js/interactions.js'),
+    true
+);
+```
+
+### JavaScript File Parameters
+
+<ParamField path="handle" type="string" required>
+  Unique identifier for the script
+</ParamField>
+
+<ParamField path="src" type="string" required>
+  URL to the JavaScript file
+</ParamField>
+
+<ParamField path="deps" type="array" default="array()">
+  Array of script handles this file depends on (e.g., `array('jquery')`)
+</ParamField>
+
+<ParamField path="ver" type="string|null">
+  Version number - use `filemtime()` for automatic cache busting
+</ParamField>
+
+<ParamField path="in_footer" type="boolean" default="false">
+  Set to `true` to load in footer (recommended for performance)
+</ParamField>
+
+## File Structure
+
+```
+theme-root/
+├── assets/
+│   ├── css/
+│   │   ├── ani.css          ← Currently loaded
+│   │   └── [your-css].css   ← Add more here
+│   └── js/
+│       ├── main.js          ← Currently loaded
+│       └── [your-js].js     ← Add more here
+└── inc/
+    └── assets.php           ← Asset management
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Load in Footer" icon="arrow-down">
+    Always load JavaScript files in the footer (set last parameter to `true`) to improve page load performance.
+  </Card>
+  
+  <Card title="Use Dependencies" icon="link">
+    Declare dependencies properly to ensure scripts load in the correct order and prevent conflicts.
+  </Card>
+  
+  <Card title="Cache Busting" icon="rotate">
+    Use `filemtime()` for automatic cache busting instead of manual version numbers.
+  </Card>
+  
+  <Card title="Minimize Requests" icon="compress">
+    Combine related styles into single files when possible to reduce HTTP requests.
+  </Card>
+</CardGroup>
+
+## Advanced Customization
+
+### Conditional Loading
+
+Load assets only on specific pages:
+
+```php
+function tokha_assets() {
+    // ... existing code ...
+    
+    // Load only on single posts
+    if (is_single()) {
+        wp_enqueue_style(
+            'tokha-single',
+            get_template_directory_uri() . '/assets/css/single.css',
+            array(),
+            '1.0'
+        );
+    }
+    
+    // Load only on homepage
+    if (is_front_page()) {
+        wp_enqueue_script(
+            'tokha-slider',
+            get_template_directory_uri() . '/assets/js/slider.js',
+            array('jquery'),
+            filemtime(get_template_directory() . '/assets/js/slider.js'),
+            true
+        );
+    }
+}
+```
+
+### Adding External Libraries
+
+```php
+// Load jQuery from WordPress core
+wp_enqueue_script('jquery');
+
+// Load external library
+wp_enqueue_script(
+    'swiper',
+    'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
+    array(),
+    '11.0.0',
+    true
+);
+```
+
+### Localizing Scripts
+
+Pass PHP data to JavaScript:
+
+```php
+wp_enqueue_script(
+    'tokha-main',
+    get_template_directory_uri() . '/assets/js/main.js',
+    array(),
+    filemtime(get_template_directory() . '/assets/js/main.js'),
+    true
+);
+
+// Make PHP data available to JavaScript
+wp_localize_script('tokha-main', 'tokhaData', array(
+    'ajaxUrl' => admin_url('admin-ajax.php'),
+    'siteUrl' => get_site_url(),
+    'themePath' => get_template_directory_uri(),
+));
+```
+
+Access in JavaScript:
+
+```javascript
+console.log(tokhaData.ajaxUrl);
+console.log(tokhaData.siteUrl);
+```
+
+## Performance Optimization
+
+<Accordion title="Minify Assets">
+  Minify CSS and JavaScript files in production to reduce file sizes. Consider using build tools like Webpack or Gulp.
+</Accordion>
+
+<Accordion title="Combine Files">
+  Reduce the number of CSS files in the `$css_files` array by combining related styles into single files.
+</Accordion>
+
+<Accordion title="Defer Non-Critical Scripts">
+  Use `wp_script_add_data()` to defer or async load non-critical JavaScript:
+  
+  ```php
+  wp_enqueue_script('tokha-analytics', '...', array(), '1.0', true);
+  wp_script_add_data('tokha-analytics', 'defer', true);
+  ```
+</Accordion>
+
+<Accordion title="Use CDN for Libraries">
+  Load popular libraries from CDNs to benefit from browser caching across sites.
+</Accordion>
+
+## Troubleshooting
+
+<Accordion title="Styles not loading">
+  1. Verify the CSS file exists in `/assets/css/`
+  2. Check file name matches the array entry (without `.css` extension)
+  3. Clear browser cache and WordPress cache
+  4. Inspect page source to verify the `<link>` tag is present
+</Accordion>
+
+<Accordion title="JavaScript not working">
+  1. Check browser console for errors
+  2. Verify file path is correct
+  3. Ensure dependencies are loaded first
+  4. Check if script is loaded in footer (view page source)
+</Accordion>
+
+<Accordion title="Cache not busting">
+  If changes aren't appearing, verify `filemtime()` is working:
+  - Check file permissions
+  - Ensure the file path is correct
+  - Try hard-refreshing browser (Ctrl+Shift+R)
+</Accordion>
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Theme Setup" icon="gear" href="/features/theme-setup">
+    Configure core theme features and capabilities
+  </Card>
+  
+  <Card title="Customization Guide" icon="palette" href="/customization/styling">
+    Learn how to customize theme appearance
+  </Card>
+</CardGroup>

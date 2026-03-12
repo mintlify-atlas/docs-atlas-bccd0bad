@@ -1,0 +1,429 @@
+---
+title: 'Hooks'
+description: 'WordPress actions and filters used in Tohka Theme'
+---
+
+# Hooks Reference
+
+Tohka Theme uses WordPress hooks to integrate its functionality with WordPress core. Understanding these hooks allows you to extend and customize the theme behavior.
+
+---
+
+## Theme Hooks
+
+These are the WordPress action hooks utilized by Tohka Theme:
+
+### after_setup_theme
+
+**Used by:** `tokha_setup()`  
+**Priority:** 10 (default)  
+**File:** `inc/setup.php:50`
+
+This hook fires after the theme is loaded and runs before the init hook. It's the recommended place to add theme support features and register navigation menus.
+
+#### What Tohka Does
+
+The `tokha_setup()` function is hooked to `after_setup_theme` to:
+- Enable title tag support
+- Enable post thumbnails
+- Add HTML5 support for various features
+- Enable wide alignment for blocks
+- Register the primary navigation menu
+
+#### Usage in Tohka
+
+```php
+function tokha_setup() {
+    add_theme_support('title-tag');
+    add_theme_support('post-thumbnails');
+    add_theme_support('html5', array(
+        'search-form',
+        'comment-form',
+        'comment-list',
+        'gallery',
+        'caption'
+    ));
+    add_theme_support('align-wide');
+    
+    register_nav_menus(array(
+        'primary' => __('Menú Principal', 'tokha'),
+    ));
+}
+
+add_action('after_setup_theme', 'tokha_setup');
+```
+
+#### Extending This Hook
+
+You can add your own functionality to this hook in a child theme or plugin:
+
+```php
+function my_custom_theme_setup() {
+    // Add custom image sizes
+    add_image_size('custom-size', 800, 600, true);
+    
+    // Add support for custom background
+    add_theme_support('custom-background');
+    
+    // Register additional menu locations
+    register_nav_menus(array(
+        'footer' => __('Footer Menu', 'tokha'),
+    ));
+}
+add_action('after_setup_theme', 'my_custom_theme_setup');
+```
+
+<Note>
+  This hook is ideal for adding theme features because it runs early in the WordPress loading process.
+</Note>
+
+---
+
+### wp_enqueue_scripts
+
+**Used by:** `tokha_assets()`  
+**Priority:** 10 (default)  
+**File:** `inc/assets.php:68`
+
+This is the proper hook to enqueue scripts and styles for the front end of your site. It ensures assets are loaded at the correct time and in the correct order.
+
+#### What Tohka Does
+
+The `tokha_assets()` function is hooked to `wp_enqueue_scripts` to:
+- Load custom CSS files from the `/assets/css/` directory
+- Load the main JavaScript file with cache-busting
+- Ensure all assets are properly versioned
+
+#### Usage in Tohka
+
+```php
+function tokha_assets() {
+
+    // Load CSS files
+    $css_files = array('ani');
+    
+    foreach ($css_files as $file) {
+        wp_enqueue_style(
+            'tohka-' . $file,
+            get_template_directory_uri() . "/assets/css/{$file}.css",
+            array(),
+            '1.0',
+            'all'
+        );
+    }
+
+    // Load JavaScript
+    wp_enqueue_script(
+        'tokha-main',
+        get_template_directory_uri() . '/assets/js/main.js',
+        array(),
+        filemtime(get_template_directory() . '/assets/js/main.js'),
+        true
+    );
+}
+
+add_action('wp_enqueue_scripts', 'tokha_assets');
+```
+
+#### Extending This Hook
+
+You can add your own assets to this hook:
+
+```php
+function my_custom_assets() {
+    // Enqueue custom CSS
+    wp_enqueue_style(
+        'my-custom-styles',
+        get_stylesheet_directory_uri() . '/custom.css',
+        array('tohka-ani'), // Depend on Tohka's animation CSS
+        '1.0'
+    );
+    
+    // Enqueue JavaScript library with dependency
+    wp_enqueue_script(
+        'my-custom-script',
+        get_stylesheet_directory_uri() . '/custom.js',
+        array('jquery'), // Depends on jQuery
+        '1.0',
+        true
+    );
+}
+add_action('wp_enqueue_scripts', 'my_custom_assets', 20); // Priority 20 to run after Tohka
+```
+
+<Warning>
+  Never enqueue scripts or styles directly in template files. Always use the `wp_enqueue_scripts` hook.
+</Warning>
+
+<Note>
+  Tohka uses `filemtime()` for JavaScript versioning to automatically bust cache when files change.
+</Note>
+
+---
+
+### widgets_init
+
+**Used by:** `tohka_widgets_init()`  
+**Priority:** 10 (default)  
+**File:** `inc/sidebar.php:26`
+
+This hook fires after all default WordPress widgets have been registered. It's used to register custom widget areas (sidebars) for your theme.
+
+#### What Tohka Does
+
+The `tohka_widgets_init()` function is hooked to `widgets_init` to:
+- Register the primary sidebar widget area
+- Define HTML structure for widgets and titles
+
+#### Usage in Tohka
+
+```php
+function tohka_widgets_init() {
+
+    register_sidebar(array(
+        'name'          => 'Sidebar Principal',
+        'id'            => 'sidebar-1',
+        'description'   => 'Widgets del sidebar principal',
+        'before_widget' => '<div class="widget">',
+        'after_widget'  => '</div>',
+        'before_title'  => '<h3 class="widget-title">',
+        'after_title'   => '</h3>',
+    ));
+
+}
+
+add_action('widgets_init', 'tohka_widgets_init');
+```
+
+#### Extending This Hook
+
+You can register additional widget areas:
+
+```php
+function my_custom_widget_areas() {
+    // Register a footer widget area
+    register_sidebar(array(
+        'name'          => 'Footer Area',
+        'id'            => 'footer-1',
+        'description'   => 'Widgets for the footer',
+        'before_widget' => '<div class="footer-widget">',
+        'after_widget'  => '</div>',
+        'before_title'  => '<h4>',
+        'after_title'   => '</h4>',
+    ));
+    
+    // Register a custom widget
+    register_widget('My_Custom_Widget');
+}
+add_action('widgets_init', 'my_custom_widget_areas');
+```
+
+<Note>
+  Widget areas registered here will appear in **Appearance > Widgets** in the WordPress admin.
+</Note>
+
+---
+
+## Working with Hooks
+
+### Understanding Actions vs Filters
+
+Tohka Theme uses **action hooks** exclusively in its core functions:
+
+<Accordion title="Actions vs Filters">
+
+#### Action Hooks
+
+**What they do:** Allow you to add or modify functionality at specific points in WordPress execution.
+
+**Syntax:**
+```php
+add_action('hook_name', 'your_function_name', $priority, $accepted_args);
+```
+
+**All Tohka hooks are actions:**
+- `after_setup_theme` - Add theme features
+- `wp_enqueue_scripts` - Load assets
+- `widgets_init` - Register widget areas
+
+#### Filter Hooks
+
+**What they do:** Allow you to modify data before it's used or displayed.
+
+**Syntax:**
+```php
+add_filter('filter_name', 'your_function_name', $priority, $accepted_args);
+```
+
+**Example usage:**
+```php
+// Modify the excerpt length
+function tohka_excerpt_length($length) {
+    return 30;
+}
+add_filter('excerpt_length', 'tohka_excerpt_length');
+```
+
+While Tohka doesn't use filters in its core, you can use WordPress filters to customize its behavior.
+
+</Accordion>
+
+### Hook Priority
+
+All Tohka functions use the default priority of `10`. You can control when your custom functions run by adjusting the priority:
+
+```php
+// Run before Tohka (priority < 10)
+add_action('wp_enqueue_scripts', 'my_early_function', 5);
+
+// Run after Tohka (priority > 10)
+add_action('wp_enqueue_scripts', 'my_late_function', 20);
+
+// Run at the same time (priority = 10)
+add_action('wp_enqueue_scripts', 'my_function', 10);
+```
+
+### Removing Tohka Hooks
+
+If you need to disable a Tohka function, you can remove it from its hook:
+
+```php
+// Remove the assets function
+remove_action('wp_enqueue_scripts', 'tokha_assets');
+
+// Then add your own
+function my_replacement_assets() {
+    // Your custom asset loading
+}
+add_action('wp_enqueue_scripts', 'my_replacement_assets');
+```
+
+<Warning>
+  Removing core Tohka hooks may break theme functionality. Only do this if you understand the implications and plan to replace the functionality.
+</Warning>
+
+---
+
+## Common Hook Patterns
+
+### Adding Custom Functionality
+
+The most common way to extend Tohka is to add your own hooked functions:
+
+```php
+// In your child theme's functions.php
+
+// Add custom theme support
+function mytheme_add_features() {
+    add_theme_support('custom-logo');
+    add_theme_support('custom-header');
+}
+add_action('after_setup_theme', 'mytheme_add_features');
+
+// Add custom scripts conditionally
+function mytheme_conditional_scripts() {
+    if (is_front_page()) {
+        wp_enqueue_script(
+            'homepage-slider',
+            get_stylesheet_directory_uri() . '/js/slider.js',
+            array('jquery'),
+            '1.0',
+            true
+        );
+    }
+}
+add_action('wp_enqueue_scripts', 'mytheme_conditional_scripts');
+```
+
+### Child Theme Best Practices
+
+<Accordion title="Using Hooks in Child Themes">
+
+When creating a child theme for Tohka, use hooks instead of copying template files:
+
+```php
+// ❌ DON'T: Copy and modify inc/setup.php
+
+// ✅ DO: Hook into the same action
+function child_theme_setup() {
+    // Add your customizations
+    add_theme_support('custom-logo', array(
+        'height'      => 100,
+        'width'       => 400,
+        'flex-height' => true,
+        'flex-width'  => true,
+    ));
+}
+add_action('after_setup_theme', 'child_theme_setup', 11); // Run after parent
+```
+
+Benefits:
+- Parent theme can be updated without losing changes
+- Cleaner code organization
+- Easier to maintain
+- Better performance
+
+</Accordion>
+
+---
+
+## Additional WordPress Hooks
+
+While not currently used by Tohka, these hooks are available for customization:
+
+<Accordion title="Other Useful Hooks for Theme Development">
+
+### wp_head
+Output content in the `<head>` section:
+```php
+function add_custom_meta() {
+    echo '<meta name="custom" content="value">';
+}
+add_action('wp_head', 'add_custom_meta');
+```
+
+### wp_footer
+Output content before closing `</body>`:
+```php
+function add_analytics() {
+    echo '<script>/* Analytics code */</script>';
+}
+add_action('wp_footer', 'add_analytics');
+```
+
+### init
+Runs after WordPress is fully loaded:
+```php
+function register_custom_post_type() {
+    register_post_type('portfolio', array(/* args */));
+}
+add_action('init', 'register_custom_post_type');
+```
+
+### template_redirect
+Runs before template loading:
+```php
+function custom_redirects() {
+    if (is_page('old-page')) {
+        wp_redirect(home_url('/new-page'));
+        exit;
+    }
+}
+add_action('template_redirect', 'custom_redirects');
+```
+
+</Accordion>
+
+---
+
+## Hook Reference Summary
+
+| Hook | Function | File | Purpose |
+|------|----------|------|----------|
+| `after_setup_theme` | `tokha_setup()` | inc/setup.php:50 | Configure theme features and support |
+| `wp_enqueue_scripts` | `tokha_assets()` | inc/assets.php:68 | Load stylesheets and scripts |
+| `widgets_init` | `tohka_widgets_init()` | inc/sidebar.php:26 | Register widget areas |
+
+<Note>
+  For a complete list of WordPress hooks, see the [WordPress Plugin API Reference](https://developer.wordpress.org/plugins/hooks/).
+</Note>

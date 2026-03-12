@@ -1,80 +1,230 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: "Quick Start Guide"
+description: "Get your site up and running with Tohka Theme in minutes"
 ---
 
-## Get started in three steps
+<Note>
+This guide assumes you've already [installed Tohka Theme](/installation) on your WordPress site.
+</Note>
 
-Get your documentation site running locally and make your first customization.
+## Getting Started
 
-### Step 1: Set up your local environment
+Follow these steps to quickly set up a functional website with Tohka Theme. You'll go from a fresh installation to a working site with navigation, content, and widgets.
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+<Steps>
+  <Step title="Create Your First Pages">
+    Start by creating a homepage and a few basic pages for your site.
 
-### Step 2: Deploy your changes
+    **Create a Homepage:**
+    1. Go to **Pages → Add New** in WordPress admin
+    2. Title it "Home" and add your welcome content
+    3. Click **Publish**
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    **Create Additional Pages:**
+    Create pages like "About", "Contact", or "Services" following the same process.
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+    **Set Your Homepage:**
+    1. Navigate to **Settings → Reading**
+    2. Under "Your homepage displays", select **A static page**
+    3. Choose "Home" for **Homepage**
+    4. Optionally choose a **Posts page** for your blog
+    5. Click **Save Changes**
+  </Step>
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+  <Step title="Set Up Navigation Menu">
+    Configure the primary navigation menu that appears in your site header.
 
-### Step 3: Go live
+    **Create Your Menu:**
+    1. Go to **Appearance → Menus**
+    2. Create a new menu (e.g., "Main Menu")
+    3. Add your pages to the menu from the left panel
+    4. Arrange them in your preferred order
+    5. Check the **Primary** location box
+    6. Click **Save Menu**
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+    The menu will appear using the theme's navigation template from `/template-parts/navbar.php`:
 
-## Next steps
+    ```php template-parts/navbar.php
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <?php the_custom_logo(); ?>
+            </div>
 
-Now that you have your docs running, explore these key features:
+            <?php
+            wp_nav_menu(array(
+                'theme_location' => 'primary',
+                'menu_class'     => 'menu'
+            ));
+            ?>
+        </div>
+    </nav>
+    ```
+  </Step>
+
+  <Step title="Configure Sidebar Widgets">
+    Add widgets to your sidebar to enhance functionality.
+
+    **Add Widgets:**
+    1. Navigate to **Appearance → Widgets**
+    2. Find the **Sidebar Principal** widget area
+    3. Add widgets like:
+       - **Search** - Help visitors find content
+       - **Recent Posts** - Display latest blog posts
+       - **Categories** - Organize content by category
+       - **Tag Cloud** - Show popular tags
+    4. Configure each widget's settings
+    5. Click **Save**
+
+    The sidebar is registered in `/inc/sidebar.php`:
+
+    ```php inc/sidebar.php
+    register_sidebar(array(
+        'name'          => 'Sidebar Principal',
+        'id'            => 'sidebar-1',
+        'description'   => 'Widgets del sidebar principal',
+        'before_widget' => '<div class="widget">',
+        'after_widget'  => '</div>',
+        'before_title'  => '<h3 class="widget-title">',
+        'after_title'   => '</h3>',
+    ));
+    ```
+  </Step>
+
+  <Step title="Customize Site Identity">
+    Set up your site's basic branding and identity.
+
+    **Configure Identity Settings:**
+    1. Go to **Appearance → Customize → Site Identity**
+    2. Set your **Site Title** and **Tagline**
+    3. Upload a **Site Icon** (favicon) - recommended 512x512px
+    4. Upload a **Logo** to appear in the navigation
+    5. Click **Publish**
+
+    <Tip>
+    The theme supports custom logos through WordPress's built-in logo support, registered in `inc/setup.php`.
+    </Tip>
+  </Step>
+
+  <Step title="Create Your First Blog Post">
+    Add content to your blog with featured images.
+
+    **Create a Post:**
+    1. Navigate to **Posts → Add New**
+    2. Write your post title and content
+    3. Set a **Featured Image** in the right sidebar
+       - The theme supports post thumbnails via `add_theme_support('post-thumbnails')`
+    4. Assign **Categories** and **Tags**
+    5. Click **Publish**
+
+    **View Your Post:**
+    Visit your site to see the post displayed using the theme's main template from `index.php`:
+
+    ```php index.php
+    <?php get_header(); ?>
+
+    <?php
+    while ( have_posts() ) :
+        the_post();
+        the_content();
+    endwhile;
+    ?>
+
+    <?php get_footer(); ?>
+    ```
+  </Step>
+
+  <Step title="Test Responsive Design">
+    Ensure your site looks great on all devices.
+
+    **Test Your Site:**
+    1. Use the **Customize** preview to test different screen sizes
+    2. Check your site on mobile, tablet, and desktop
+    3. Verify the navigation menu works properly
+    4. Confirm images scale correctly
+
+    The theme includes responsive meta tags in `header.php`:
+
+    ```php header.php
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    ```
+  </Step>
+</Steps>
+
+## Understanding the Theme Structure
+
+Tohka Theme follows a modular architecture with organized code:
+
+```php functions.php
+<?php
+/**
+ * TOKHA Theme
+ * Solo carga los módulos del directorio /inc.
+ */
+
+require get_template_directory() . '/inc/setup.php';
+require get_template_directory() . '/inc/assets.php';
+require get_template_directory() . '/inc/sidebar.php';
+```
+
+- **`inc/setup.php`** - Theme features and WordPress support
+- **`inc/assets.php`** - CSS/JS loading and enqueuing
+- **`inc/sidebar.php`** - Widget area registration
+
+## Next Steps
+
+You now have a functional website with Tohka Theme! Explore these resources to enhance your site:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Theme Customization" icon="palette" href="/features/theme-setup">
+    Deep dive into theme options and styling
+  </Card>
+  <Card title="Template Files" icon="sitemap" href="/customization/template-files">
+    Learn about WordPress template files
+  </Card>
+  <Card title="Adding Features" icon="code" href="/customization/adding-features">
+    Extend your theme with custom functionality
+  </Card>
+  <Card title="Function Reference" icon="book" href="/reference/functions">
+    Explore all available functions
+  </Card>
 </CardGroup>
 
+<Tip>
+For advanced customization, check out the [Theme Structure](/customization/theme-structure) guide to understand how the theme is organized.
+</Tip>
+
+## Common Tasks
+
+<AccordionGroup>
+  <Accordion title="How do I change the site colors?">
+    Add custom CSS through **Appearance → Customize → Additional CSS** or create a child theme for extensive styling changes. See the [Styling Guide](/customization/styling) for details.
+  </Accordion>
+
+  <Accordion title="Can I use page builders?">
+    Yes! Tohka Theme is compatible with popular page builders like Elementor. The theme includes `add_theme_support('align-wide')` for wide and full-width content support.
+  </Accordion>
+
+  <Accordion title="How do I add more widget areas?">
+    You can register additional sidebars by adding code to `inc/sidebar.php` or creating a child theme. See [Adding Features](/customization/adding-features) for examples.
+  </Accordion>
+
+  <Accordion title="Where do I add custom CSS?">
+    The theme loads CSS files from the `assets/css/` directory. You can add custom styles by:
+    - Using **Appearance → Customize → Additional CSS** (recommended for small changes)
+    - Adding a new CSS file to `assets/css/` and updating `inc/assets.php`
+    - Creating a child theme (recommended for extensive customization)
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<Warning>
+If your menu doesn't appear, ensure you've assigned it to the **Primary** location in **Appearance → Menus**.
+</Warning>
+
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+If widgets aren't displaying, check that you've added them to the **Sidebar Principal** area and that your page template includes `get_sidebar()`.
 </Note>
+
+Need more help? Check the [Function Reference](/reference/functions) for detailed documentation on all theme functions.

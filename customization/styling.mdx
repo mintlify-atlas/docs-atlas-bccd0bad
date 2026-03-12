@@ -1,0 +1,421 @@
+---
+title: Styling
+description: How CSS is organized and loaded in Tohka Theme
+---
+
+Tohka Theme uses a modular approach to CSS, separating theme metadata from actual stylesheets for better organization and performance.
+
+## CSS Architecture Overview
+
+Tohka's styling system consists of:
+
+<CardGroup cols={2}>
+  <Card title="style.css" icon="file">
+    Contains only theme metadata—not loaded by default
+  </Card>
+  <Card title="assets/css/" icon="folder">
+    Contains actual stylesheets that are enqueued
+  </Card>
+</CardGroup>
+
+## style.css - Theme Metadata
+
+The `style.css` file in the theme root contains WordPress theme information:
+
+```css style.css
+/*
+Theme Name: Tohka Theme
+Theme URI: 
+Author: Beyond the Horizon Team
+Author URI: 
+Description: Tohka es un tema moderno, ligero y optimizado para rendimiento, diseñado para ofrecer una experiencia visual elegante y minimalista. Ideal para blogs, portafolios y sitios corporativos que buscan velocidad, claridad y flexibilidad.
+Version: 1.0.0
+Requires at least: 6.0
+Tested up to: 6.5
+Requires PHP: 7.4
+License: GPL v2 or later
+Text Domain: tohka.com
+*/
+```
+
+<Warning>
+**Don't delete style.css!** WordPress requires this file to recognize your theme. However, Tohka doesn't load it by default—actual styles live in `assets/css/`.
+</Warning>
+
+### Why style.css Isn't Loaded
+
+By default, Tohka doesn't enqueue `style.css` because:
+
+1. **Separation of Concerns** - Metadata lives separately from actual styles
+2. **Performance** - Only load stylesheets you actually use
+3. **Organization** - Keep related styles in focused files
+
+If you want to use `style.css` for actual styles, uncomment this section in `inc/assets.php`:
+
+```php inc/assets.php
+/**
+ * Hoja de estilos principal (style.css) pero comentada por ahora, 
+ * ya que no se está usando.  
+ */
+wp_enqueue_style(
+    'tohka-style',
+    get_template_directory_uri() . '/style.css',
+    array(),
+    '1.0',
+    'all'
+);
+```
+
+## The assets/css/ Directory
+
+All active stylesheets are stored in `assets/css/`:
+
+```
+assets/
+└── css/
+    └── ani.css
+```
+
+Currently, Tohka includes:
+
+- **ani.css** - Animation styles (currently empty, ready for your animations)
+
+<Tip>
+This directory structure makes it easy to organize styles by purpose: layout, components, animations, utilities, etc.
+</Tip>
+
+## How Styles Are Loaded
+
+All CSS enqueuing happens in `inc/assets.php`:
+
+```php inc/assets.php
+function tokha_assets() {
+    /**
+     * =========================
+     *  ESTILOS
+     * =========================
+     */
+
+    // cargando hojas de estilos 
+    $css_files = array('ani'); // Agrega aquí los nombres de tus archivos CSS sin la extensión
+
+    foreach ($css_files as $file) {
+        wp_enqueue_style(
+            'tohka-' . $file, // handle único
+            get_template_directory_uri() . "/assets/css/{$file}.css",
+            array(),          // sin dependencias
+            '1.0',            // versión fija
+            'all'
+        );
+    }
+}
+
+add_action('wp_enqueue_scripts', 'tokha_assets');
+```
+
+### Understanding wp_enqueue_style()
+
+The `wp_enqueue_style()` function takes these parameters:
+
+| Parameter | Description | Example |
+|-----------|-------------|--------|
+| `$handle` | Unique identifier | `'tohka-ani'` |
+| `$src` | File path/URL | `get_template_directory_uri() . '/assets/css/ani.css'` |
+| `$deps` | Dependencies (array) | `array('tohka-main')` |
+| `$ver` | Version number | `'1.0'` or `filemtime(...)` |
+| `$media` | Media type | `'all'`, `'screen'`, `'print'` |
+
+<Note>
+Using unique handles prevents conflicts with plugins and other themes.
+</Note>
+
+## Adding Custom CSS
+
+Follow these steps to add your own stylesheet:
+
+<Steps>
+  <Step title="Create the CSS file">
+    Add your new stylesheet to `assets/css/`:
+    
+    ```bash
+    touch assets/css/custom.css
+    ```
+  </Step>
+  
+  <Step title="Add styles to the file">
+    Write your CSS in the new file:
+    
+    ```css assets/css/custom.css
+    /* Custom Theme Styles */
+    
+    .site-header {
+        background: #ffffff;
+        padding: 20px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    ```
+  </Step>
+  
+  <Step title="Enqueue the stylesheet">
+    Add the filename to the array in `inc/assets.php`:
+    
+    ```php inc/assets.php
+    $css_files = array('ani', 'custom');
+    ```
+  </Step>
+  
+  <Step title="Clear cache and test">
+    Refresh your site to see the new styles. Use browser DevTools to verify the file loads.
+  </Step>
+</Steps>
+
+<Tip>
+The array approach makes it easy to enable/disable stylesheets—just add or remove filenames from the array.
+</Tip>
+
+## CSS Organization Best Practices
+
+### Option 1: Single File Approach
+
+For small themes, use one main stylesheet:
+
+```css assets/css/main.css
+/* =========================
+   LAYOUT
+   ========================= */
+.container { max-width: 1200px; margin: 0 auto; }
+.grid { display: grid; gap: 20px; }
+
+/* =========================
+   COMPONENTS
+   ========================= */
+.button { padding: 10px 20px; background: #0073aa; }
+.card { background: #fff; border-radius: 8px; }
+
+/* =========================
+   UTILITIES
+   ========================= */
+.mt-1 { margin-top: 0.5rem; }
+.text-center { text-align: center; }
+```
+
+### Option 2: Modular File Approach
+
+For larger themes, split CSS into focused files:
+
+```
+assets/css/
+├── layout.css      # Grid, containers, structure
+├── components.css  # Buttons, cards, modals
+├── typography.css  # Fonts, headings, text styles
+├── utilities.css   # Helper classes
+└── animations.css  # Transitions and animations
+```
+
+Then enqueue them in order:
+
+```php inc/assets.php
+$css_files = array(
+    'layout',
+    'typography',
+    'components',
+    'utilities',
+    'animations'
+);
+```
+
+<Note>
+Files are loaded in array order, so list base styles first and overrides last.
+</Note>
+
+## Managing CSS Dependencies
+
+If one stylesheet depends on another, specify dependencies:
+
+```php inc/assets.php
+// Load base styles first
+wp_enqueue_style(
+    'tohka-base',
+    get_template_directory_uri() . '/assets/css/base.css',
+    array(),
+    '1.0'
+);
+
+// Load components after base
+wp_enqueue_style(
+    'tohka-components',
+    get_template_directory_uri() . '/assets/css/components.css',
+    array('tohka-base'), // Depends on base.css
+    '1.0'
+);
+```
+
+WordPress ensures `base.css` loads before `components.css`.
+
+## Cache Busting
+
+Use `filemtime()` to automatically update version numbers when CSS changes:
+
+```php inc/assets.php
+wp_enqueue_style(
+    'tohka-custom',
+    get_template_directory_uri() . '/assets/css/custom.css',
+    array(),
+    filemtime(get_template_directory() . '/assets/css/custom.css'),
+    'all'
+);
+```
+
+<Tip>
+This forces browsers to reload CSS when you update the file, preventing stale cache issues.
+</Tip>
+
+## Loading CSS Conditionally
+
+Load stylesheets only where needed:
+
+```php inc/assets.php
+function tokha_assets() {
+    // Always load base styles
+    wp_enqueue_style(
+        'tohka-main',
+        get_template_directory_uri() . '/assets/css/main.css',
+        array(),
+        '1.0'
+    );
+    
+    // Load contact form styles only on contact page
+    if ( is_page('contact') ) {
+        wp_enqueue_style(
+            'tohka-contact',
+            get_template_directory_uri() . '/assets/css/contact.css',
+            array(),
+            '1.0'
+        );
+    }
+    
+    // Load blog styles only on blog pages
+    if ( is_home() || is_archive() || is_single() ) {
+        wp_enqueue_style(
+            'tohka-blog',
+            get_template_directory_uri() . '/assets/css/blog.css',
+            array(),
+            '1.0'
+        );
+    }
+}
+```
+
+Conditional tags you can use:
+
+- `is_front_page()` - Homepage
+- `is_home()` - Blog posts index
+- `is_single()` - Single post
+- `is_page()` - Any page
+- `is_page('contact')` - Specific page by slug
+- `is_archive()` - Category, tag, or date archive
+- `is_404()` - 404 error page
+
+## Inline Styles
+
+For small, dynamic CSS, use inline styles:
+
+```php inc/assets.php
+function tohka_inline_styles() {
+    $primary_color = get_theme_mod('primary_color', '#0073aa');
+    
+    $custom_css = "
+        .button-primary {
+            background-color: {$primary_color};
+        }
+        .link:hover {
+            color: {$primary_color};
+        }
+    ";
+    
+    wp_add_inline_style('tohka-main', $custom_css);
+}
+add_action('wp_enqueue_scripts', 'tohka_inline_styles');
+```
+
+<Warning>
+Only use inline styles for dynamic values from the Customizer. Keep static CSS in files.
+</Warning>
+
+## CSS Loading Order
+
+WordPress loads styles in this order:
+
+1. Enqueued theme styles (from `wp_enqueue_scripts`)
+2. Plugin styles
+3. Inline styles (from `wp_add_inline_style`)
+
+To ensure your styles override plugin styles, use higher specificity or `!important` sparingly.
+
+## Working with Third-Party CSS
+
+### Loading from CDN
+
+```php inc/assets.php
+wp_enqueue_style(
+    'font-awesome',
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
+    array(),
+    '6.0.0'
+);
+```
+
+### Loading Local Library
+
+```php inc/assets.php
+wp_enqueue_style(
+    'bootstrap',
+    get_template_directory_uri() . '/assets/css/vendor/bootstrap.min.css',
+    array(),
+    '5.3.0'
+);
+```
+
+<Tip>
+Store third-party CSS in `assets/css/vendor/` to separate it from your custom styles.
+</Tip>
+
+## Debugging CSS Loading
+
+To verify styles are loading:
+
+1. **View Page Source** - Check for `<link>` tags in the `<head>`
+2. **Browser DevTools** - Open Network tab and filter by CSS
+3. **WordPress Body Class** - Use classes like `.home`, `.single`, `.page-id-5` for page-specific styles
+
+```css
+/* Style only the homepage */
+.home .hero {
+    background: #f0f0f0;
+}
+
+/* Style only single posts */
+.single .entry-content {
+    max-width: 800px;
+}
+```
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Theme Structure" href="/customization/theme-structure">
+    Understand the complete file organization
+  </Card>
+  <Card title="Template Files" href="/customization/template-files">
+    Learn how templates work
+  </Card>
+  <Card title="Adding Features" href="/customization/adding-features">
+    Add JavaScript and custom functionality
+  </Card>
+</CardGroup>

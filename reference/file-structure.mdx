@@ -1,0 +1,627 @@
+---
+title: 'File Structure'
+description: 'Complete directory and file organization of Tohka Theme'
+---
+
+# File Structure
+
+Tohka Theme follows a modular, organized file structure that separates concerns and makes the codebase easy to navigate and maintain.
+
+---
+
+## Directory Tree
+
+```
+tohka-theme/
+├── assets/
+│   ├── css/
+│   │   └── ani.css
+│   └── js/
+│       └── main.js
+├── inc/
+│   ├── assets.php
+│   ├── setup.php
+│   └── sidebar.php
+├── template-parts/
+│   └── navbar.php
+├── footer.php
+├── functions.php
+├── header.php
+├── index.php
+├── style.css
+└── README.md
+```
+
+---
+
+## Root Level Files
+
+These are the core WordPress theme files located in the theme root directory.
+
+### functions.php
+
+**Location:** `/functions.php`  
+**Purpose:** Main theme entry point that loads all modules  
+**Size:** 18 lines  
+**Can be modified:** ⚠️ Caution
+
+**What it does:**
+
+This file serves as the theme's main loader. It requires all the modular PHP files from the `/inc` directory:
+
+```php
+require get_template_directory() . '/inc/setup.php';
+require get_template_directory() . '/inc/assets.php';
+require get_template_directory() . '/inc/sidebar.php';
+```
+
+**Important notes:**
+- Keep this file minimal - it should only load modules
+- Do NOT add custom logic here
+- Add new functionality in `/inc` directory and require it here
+- This file keeps the theme organized and maintainable
+
+<Warning>
+  Do not add custom functions directly to this file. Create a new file in `/inc` and require it here instead.
+</Warning>
+
+---
+
+### style.css
+
+**Location:** `/style.css`  
+**Purpose:** Theme information header and main stylesheet  
+**Size:** 15 lines (header only)  
+**Can be modified:** ✅ Yes
+
+**What it contains:**
+
+```css
+/*
+Theme Name: Tohka Theme
+Theme URI: 
+Author: Beyond the Horizon Team
+Author URI: 
+Description: Tohka es un tema moderno, ligero y optimizado para rendimiento...
+Version: 1.0.0
+Requires at least: 6.0
+Tested up to: 6.5
+Requires PHP: 7.4
+License: GPL v2 or later
+Text Domain: tohka.com
+*/
+```
+
+**Important notes:**
+- This file is **required** by WordPress to recognize the theme
+- The CSS comment at the top contains theme metadata
+- Currently, this stylesheet is **not being enqueued** in `inc/assets.php`
+- If you want to use this file for styles, uncomment the relevant section in `inc/assets.php:40-47`
+
+<Note>
+  The style.css file is primarily for theme metadata. Actual styles are loaded from `/assets/css/` files.
+</Note>
+
+---
+
+### index.php
+
+**Location:** `/index.php`  
+**Purpose:** Default WordPress template fallback  
+**Size:** 10 lines  
+**Can be modified:** ✅ Yes
+
+**What it does:**
+
+This is the most basic WordPress template file. It displays the default loop:
+
+```php
+<?php get_header(); ?>
+
+<?php
+while ( have_posts() ) :
+    the_post();
+    the_content();
+endwhile;
+?>
+
+<?php get_footer(); ?>
+```
+
+**Important notes:**
+- This is a **required** file in every WordPress theme
+- Serves as a fallback when no other template matches
+- Currently displays content without any wrapper markup
+- You can customize this to add containers, sidebars, etc.
+
+---
+
+### header.php
+
+**Location:** `/header.php`  
+**Purpose:** Theme header template  
+**Size:** 12 lines  
+**Can be modified:** ✅ Yes
+
+**What it contains:**
+
+```php
+<!DOCTYPE html>
+<html <?php language_attributes(); ?>>
+<head>
+    <meta charset="<?php bloginfo('charset'); ?>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <?php wp_head(); ?>
+</head>
+
+<body <?php body_class(); ?>>
+```
+
+**Important notes:**
+- Loaded via `get_header()` in template files
+- Contains essential WordPress hooks: `language_attributes()`, `wp_head()`, `body_class()`
+- The `wp_head()` hook outputs stylesheets and scripts in the `<head>`
+- Currently minimal - you can add navigation, logo, or other header elements
+
+<Note>
+  For navigation markup, see the `/template-parts/navbar.php` file.
+</Note>
+
+---
+
+### footer.php
+
+**Location:** `/footer.php`  
+**Purpose:** Theme footer template  
+**Size:** 4 lines  
+**Can be modified:** ✅ Yes
+
+**What it contains:**
+
+```php
+<?php wp_footer(); ?>
+</body>
+</html>
+```
+
+**Important notes:**
+- Loaded via `get_footer()` in template files
+- Contains the critical `wp_footer()` hook
+- The `wp_footer()` hook outputs scripts before closing `</body>`
+- Currently minimal - you can add footer widgets, copyright, etc.
+
+<Warning>
+  Never remove the `wp_footer()` hook. Many plugins depend on it to inject scripts.
+</Warning>
+
+---
+
+### README.md
+
+**Location:** `/README.md`  
+**Purpose:** Theme documentation and information  
+**Can be modified:** ✅ Yes
+
+**Important notes:**
+- Contains setup instructions and theme information
+- Not required by WordPress
+- Useful for developers and contributors
+
+---
+
+## /inc Directory
+
+The `/inc` directory contains all modular functionality files. This keeps the theme organized and maintainable.
+
+### inc/setup.php
+
+**Location:** `/inc/setup.php`  
+**Purpose:** Theme setup and feature configuration  
+**Size:** 50 lines  
+**Can be modified:** ✅ Yes - Primary customization file
+
+**What it contains:**
+- `tokha_setup()` function
+- Theme support declarations
+- Navigation menu registration
+- Hook: `add_action('after_setup_theme', 'tokha_setup')`
+
+**Key features configured:**
+- Dynamic title tag
+- Post thumbnails (featured images)
+- HTML5 support
+- Wide alignment for blocks
+- Primary navigation menu
+
+<Note>
+  This is one of the main files you'll edit when customizing theme features. Add new theme support here.
+</Note>
+
+**Typical modifications:**
+```php
+// Add custom image sizes
+add_image_size('hero-image', 1920, 1080, true);
+
+// Add custom logo support
+add_theme_support('custom-logo', array(
+    'height'      => 100,
+    'width'       => 400,
+    'flex-height' => true,
+));
+
+// Register additional menus
+register_nav_menus(array(
+    'footer' => __('Footer Menu', 'tokha'),
+));
+```
+
+---
+
+### inc/assets.php
+
+**Location:** `/inc/assets.php`  
+**Purpose:** Stylesheet and script management  
+**Size:** 68 lines  
+**Can be modified:** ✅ Yes - Primary customization file
+
+**What it contains:**
+- `tokha_assets()` function
+- CSS file loading with array-based management
+- JavaScript file loading with cache-busting
+- Hook: `add_action('wp_enqueue_scripts', 'tokha_assets')`
+
+**Current assets loaded:**
+- `/assets/css/ani.css` - Animation styles
+- `/assets/js/main.js` - Main JavaScript
+
+**Key features:**
+- Array-based CSS loading for easy management
+- Automatic versioning using `filemtime()` for JS
+- Scripts loaded in footer for performance
+
+<Note>
+  To add new CSS files, simply add the filename (without .css) to the `$css_files` array.
+</Note>
+
+**Typical modifications:**
+```php
+// Add more CSS files
+$css_files = array('ani', 'layout', 'utilities', 'custom');
+
+// Add conditional scripts
+if (is_singular() && comments_open()) {
+    wp_enqueue_script('comment-reply');
+}
+
+// Add external libraries
+wp_enqueue_script(
+    'swiper',
+    'https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js',
+    array(),
+    '8.0',
+    true
+);
+```
+
+---
+
+### inc/sidebar.php
+
+**Location:** `/inc/sidebar.php`  
+**Purpose:** Widget area registration  
+**Size:** 26 lines  
+**Can be modified:** ✅ Yes
+
+**What it contains:**
+- `tohka_widgets_init()` function
+- Sidebar registration with HTML structure
+- Hook: `add_action('widgets_init', 'tohka_widgets_init')`
+
+**Current sidebars:**
+- `sidebar-1` - Sidebar Principal
+
+**HTML structure defined:**
+- Widget wrapper: `<div class="widget">...</div>`
+- Title wrapper: `<h3 class="widget-title">...</h3>`
+
+**Typical modifications:**
+```php
+// Add footer widget areas
+register_sidebar(array(
+    'name'          => 'Footer Column 1',
+    'id'            => 'footer-1',
+    'description'   => 'First footer widget area',
+    'before_widget' => '<div class="footer-widget">',
+    'after_widget'  => '</div>',
+    'before_title'  => '<h4 class="footer-title">',
+    'after_title'   => '</h4>',
+));
+```
+
+---
+
+## /assets Directory
+
+The `/assets` directory contains all static resources (CSS, JavaScript, images, fonts).
+
+### assets/css/
+
+**Location:** `/assets/css/`  
+**Purpose:** Stylesheet storage  
+**Can be modified:** ✅ Yes - Add your custom styles here
+
+**Current files:**
+- `ani.css` - Animation and visual effects (currently empty)
+
+**Best practices:**
+- Create separate CSS files for different concerns (layout, components, utilities)
+- Name files descriptively (`layout.css`, `navigation.css`, `utilities.css`)
+- Add new files to the `$css_files` array in `inc/assets.php`
+- Use this directory for all theme CSS instead of inline styles
+
+**File organization example:**
+```
+assets/css/
+├── ani.css          (animations)
+├── layout.css       (page structure)
+├── components.css   (reusable components)
+├── typography.css   (fonts and text)
+└── utilities.css    (helper classes)
+```
+
+---
+
+### assets/js/
+
+**Location:** `/assets/js/`  
+**Purpose:** JavaScript file storage  
+**Can be modified:** ✅ Yes - Add your custom scripts here
+
+**Current files:**
+- `main.js` - Main theme JavaScript (currently empty)
+
+**Best practices:**
+- Keep JavaScript modular and well-commented
+- Use vanilla JS when possible to reduce dependencies
+- Add jQuery as a dependency if needed: `array('jquery')`
+- Load scripts in footer for better performance
+- Use automatic versioning with `filemtime()` to prevent caching issues
+
+**Example main.js structure:**
+```javascript
+(function() {
+    'use strict';
+    
+    // Mobile menu toggle
+    const menuToggle = document.querySelector('.menu-toggle');
+    if (menuToggle) {
+        menuToggle.addEventListener('click', function() {
+            // Toggle logic
+        });
+    }
+    
+    // Other theme JavaScript
+    
+})();
+```
+
+---
+
+## /template-parts Directory
+
+The `/template-parts` directory contains reusable template components.
+
+### template-parts/navbar.php
+
+**Location:** `/template-parts/navbar.php`  
+**Purpose:** Navigation menu markup  
+**Size:** 16 lines  
+**Can be modified:** ✅ Yes
+
+**What it contains:**
+
+```php
+<nav class="navbar">
+    <div class="container">
+        <div class="logo">
+            <?php the_custom_logo(); ?>
+        </div>
+
+        <?php
+        wp_nav_menu(array(
+            'theme_location' => 'primary',
+            'menu_class'     => 'menu'
+        ));
+        ?>
+    </div>
+</nav>
+```
+
+**Important notes:**
+- Contains navigation structure and logo display
+- Uses `wp_nav_menu()` for the primary menu
+- Displays custom logo via `the_custom_logo()`
+- Include this in your header: `get_template_part('template-parts/navbar')`
+
+**Best practices for template-parts:**
+- Use for reusable template components
+- Keep each file focused on a single component
+- Load with `get_template_part('template-parts/filename')`
+- Good candidates: content loops, sidebar layouts, hero sections
+
+**Example organization:**
+```
+template-parts/
+├── navbar.php       (navigation)
+├── content.php      (post content)
+├── content-page.php (page content)
+└── hero.php         (hero section)
+```
+
+---
+
+## File Modification Guide
+
+### ✅ Safe to Modify
+
+These files are designed to be customized:
+
+- `inc/setup.php` - Add theme features and support
+- `inc/assets.php` - Add/modify stylesheets and scripts
+- `inc/sidebar.php` - Add widget areas
+- `assets/css/*` - All CSS files
+- `assets/js/*` - All JavaScript files
+- `template-parts/*` - All template components
+- `header.php` - Customize header markup
+- `footer.php` - Customize footer markup
+- `index.php` - Customize default template
+
+### ⚠️ Modify with Caution
+
+These files should only be modified if you understand the implications:
+
+- `functions.php` - Keep minimal, only add new requires
+- `style.css` - Don't remove the header comment
+
+### ❌ Do Not Modify Directly
+
+If you need to customize these, use a child theme:
+
+- Core WordPress files (if any vendor files are added)
+- Third-party libraries
+
+---
+
+## Creating New Files
+
+### Adding a New Module to /inc
+
+1. Create your new PHP file:
+   ```php
+   // inc/custom-post-types.php
+   <?php
+   function tohka_register_cpts() {
+       // Your custom post types
+   }
+   add_action('init', 'tohka_register_cpts');
+   ```
+
+2. Require it in `functions.php`:
+   ```php
+   require get_template_directory() . '/inc/custom-post-types.php';
+   ```
+
+### Adding a New Template Part
+
+1. Create the file in `/template-parts`:
+   ```php
+   // template-parts/hero.php
+   <section class="hero">
+       <?php // Hero content ?>
+   </section>
+   ```
+
+2. Include it in your template:
+   ```php
+   get_template_part('template-parts/hero');
+   ```
+
+### Adding New Assets
+
+1. Add CSS file to `/assets/css/`:
+   ```
+   assets/css/custom.css
+   ```
+
+2. Register it in `inc/assets.php`:
+   ```php
+   $css_files = array('ani', 'custom');
+   ```
+
+---
+
+## Child Theme Considerations
+
+When creating a child theme, you can override these files:
+
+<Accordion title="Child Theme File Structure">
+
+```
+child-theme/
+├── functions.php        (load after parent)
+├── style.css           (required)
+├── header.php          (overrides parent)
+├── footer.php          (overrides parent)
+├── index.php           (overrides parent)
+├── template-parts/
+│   └── navbar.php      (overrides parent)
+└── assets/
+    ├── css/
+    │   └── child.css   (additional styles)
+    └── js/
+        └── child.js    (additional scripts)
+```
+
+**Child theme functions.php:**
+```php
+<?php
+// Load parent stylesheet
+function child_theme_enqueue_styles() {
+    wp_enqueue_style(
+        'parent-style',
+        get_template_directory_uri() . '/style.css'
+    );
+    
+    wp_enqueue_style(
+        'child-style',
+        get_stylesheet_directory_uri() . '/style.css',
+        array('parent-style')
+    );
+}
+add_action('wp_enqueue_scripts', 'child_theme_enqueue_styles');
+
+// Add custom functionality
+function child_theme_setup() {
+    // Your customizations
+}
+add_action('after_setup_theme', 'child_theme_setup', 11);
+```
+
+</Accordion>
+
+---
+
+## File Organization Best Practices
+
+<Note>
+  **Modular Structure**: Tohka uses a modular architecture where each file has a specific purpose. This makes the theme easier to maintain and customize.
+</Note>
+
+1. **Keep functions.php minimal** - Only use it to load modules
+2. **One concern per file** - Each file in `/inc` should handle one aspect
+3. **Use template-parts** - Break large templates into reusable components
+4. **Separate assets** - Keep CSS and JS in dedicated files, not inline
+5. **Comment your code** - The theme uses Spanish comments, maintain this or use your preferred language consistently
+6. **Follow WordPress standards** - Use WordPress coding standards and naming conventions
+
+---
+
+## Quick Reference
+
+| File | Purpose | Modify? | Load Method |
+|------|---------|---------|-------------|
+| `functions.php` | Module loader | ⚠️ | Auto |
+| `style.css` | Theme header | ✅ | Manual enqueue |
+| `header.php` | Header template | ✅ | `get_header()` |
+| `footer.php` | Footer template | ✅ | `get_footer()` |
+| `index.php` | Default template | ✅ | Auto |
+| `inc/setup.php` | Theme features | ✅ | Required in functions.php |
+| `inc/assets.php` | Asset loading | ✅ | Required in functions.php |
+| `inc/sidebar.php` | Widget areas | ✅ | Required in functions.php |
+| `template-parts/navbar.php` | Navigation | ✅ | `get_template_part()` |
+| `assets/css/*` | Stylesheets | ✅ | Enqueued in assets.php |
+| `assets/js/*` | Scripts | ✅ | Enqueued in assets.php |
+
+<Warning>
+  Always create a backup before modifying theme files, especially before updates.
+</Warning>
