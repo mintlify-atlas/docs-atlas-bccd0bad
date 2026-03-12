@@ -1,0 +1,63 @@
+{
+  "projectType": "general",
+  "projectName": "Tohka Theme",
+  "projectDescription": "A modern, lightweight WordPress theme optimized for performance, ideal for blogs, portfolios, and corporate sites.",
+  "theme": "almond",
+  "primaryColor": "#8B5CF6",
+  "lightColor": "#A78BFA",
+  "darkColor": "#6D28D9",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting Started",
+        "pages": [
+          "introduction",
+          "installation",
+          "quickstart"
+        ]
+      },
+      {
+        "group": "Core Features",
+        "pages": [
+          "features/theme-setup",
+          "features/assets-management",
+          "features/sidebar-widgets",
+          "features/navigation-menus"
+        ]
+      },
+      {
+        "group": "Customization",
+        "pages": [
+          "customization/theme-structure",
+          "customization/template-files",
+          "customization/styling",
+          "customization/adding-features"
+        ]
+      },
+      {
+        "group": "Reference",
+        "pages": [
+          "reference/functions",
+          "reference/hooks",
+          "reference/file-structure"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Lightweight and performance-optimized",
+    "HTML5 and Gutenberg block support",
+    "Custom sidebar and widget areas",
+    "Modular architecture with organized inc/ directory",
+    "Built-in navigation menu support",
+    "Post thumbnails and featured images",
+    "Page builder compatibility (Elementor, etc.)"
+  ],
+  "publicApiSurface": [
+    "tokha_setup() - Theme initialization and feature registration",
+    "tokha_assets() - Enqueue styles and scripts",
+    "tohka_widgets_init() - Register sidebars and widget areas",
+    "primary navigation menu location",
+    "sidebar-1 widget area"
+  ]
+}
