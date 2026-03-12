@@ -121,13 +121,13 @@ To add additional CSS files, simply add them to the array:
 </Tabs>
 
 <Tip>
-  The system automatically prefixes each handle with `tohka-` to prevent conflicts with other themes and plugins.
+  CSS handles are automatically prefixed with `tohka-` to prevent conflicts. JavaScript files use the `tokha-` prefix (note the different spelling).
 </Tip>
 
 ### CSS File Parameters
 
 <ParamField path="handle" type="string" required>
-  Unique identifier for the stylesheet (automatically prefixed with `tohka-`)
+  Unique identifier for the stylesheet (automatically prefixed with `tohka-` for CSS files)
 </ParamField>
 
 <ParamField path="src" type="string" required>
